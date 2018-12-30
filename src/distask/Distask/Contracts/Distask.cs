@@ -32,16 +32,17 @@ namespace Distask.Contracts {
             "dWVzdCI9CgxQaW5nUmVzcG9uc2USLQoGc3RhdHVzGAEgASgOMh0uZGlzdGFz",
             "ay5jb250cmFjdHMuU3RhdHVzQ29kZSJOChNSZWdpc3RyYXRpb25SZXF1ZXN0",
             "EgwKBG5hbWUYASABKAkSDQoFZ3JvdXAYAiABKAkSDAoEaG9zdBgDIAEoCRIM",
-            "CgRwb3J0GAQgASgFIkUKFFJlZ2lzdHJhdGlvblJlc3BvbnNlEi0KBnN0YXR1",
-            "cxgBIAEoDjIdLmRpc3Rhc2suY29udHJhY3RzLlN0YXR1c0NvZGUqMQoKU3Rh",
-            "dHVzQ29kZRILCgdTVUNDRVNTEAASCwoHV0FSTklORxABEgkKBUVSUk9SEAIy",
-            "rwEKDkRpc3Rhc2tTZXJ2aWNlElIKB0V4ZWN1dGUSIS5kaXN0YXNrLmNvbnRy",
-            "YWN0cy5EaXN0YXNrUmVxdWVzdBoiLmRpc3Rhc2suY29udHJhY3RzLkRpc3Rh",
-            "c2tSZXNwb25zZSIAEkkKBFBpbmcSHi5kaXN0YXNrLmNvbnRyYWN0cy5QaW5n",
-            "UmVxdWVzdBofLmRpc3Rhc2suY29udHJhY3RzLlBpbmdSZXNwb25zZSIAMnsK",
-            "GkRpc3Rhc2tSZWdpc3RyYXRpb25TZXJ2aWNlEl0KCFJlZ2lzdGVyEiYuZGlz",
-            "dGFzay5jb250cmFjdHMuUmVnaXN0cmF0aW9uUmVxdWVzdBonLmRpc3Rhc2su",
-            "Y29udHJhY3RzLlJlZ2lzdHJhdGlvblJlc3BvbnNlIgBiBnByb3RvMw=="));
+            "CgRwb3J0GAQgASgFIlsKFFJlZ2lzdHJhdGlvblJlc3BvbnNlEi0KBnN0YXR1",
+            "cxgBIAEoDjIdLmRpc3Rhc2suY29udHJhY3RzLlN0YXR1c0NvZGUSFAoMZXJy",
+            "b3JNZXNzYWdlGAIgASgJKjEKClN0YXR1c0NvZGUSCwoHU1VDQ0VTUxAAEgsK",
+            "B1dBUk5JTkcQARIJCgVFUlJPUhACMq8BCg5EaXN0YXNrU2VydmljZRJSCgdF",
+            "eGVjdXRlEiEuZGlzdGFzay5jb250cmFjdHMuRGlzdGFza1JlcXVlc3QaIi5k",
+            "aXN0YXNrLmNvbnRyYWN0cy5EaXN0YXNrUmVzcG9uc2UiABJJCgRQaW5nEh4u",
+            "ZGlzdGFzay5jb250cmFjdHMuUGluZ1JlcXVlc3QaHy5kaXN0YXNrLmNvbnRy",
+            "YWN0cy5QaW5nUmVzcG9uc2UiADJ7ChpEaXN0YXNrUmVnaXN0cmF0aW9uU2Vy",
+            "dmljZRJdCghSZWdpc3RlchImLmRpc3Rhc2suY29udHJhY3RzLlJlZ2lzdHJh",
+            "dGlvblJlcXVlc3QaJy5kaXN0YXNrLmNvbnRyYWN0cy5SZWdpc3RyYXRpb25S",
+            "ZXNwb25zZSIAYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Distask.Contracts.StatusCode), }, new pbr::GeneratedClrTypeInfo[] {
@@ -50,7 +51,7 @@ namespace Distask.Contracts {
             new pbr::GeneratedClrTypeInfo(typeof(global::Distask.Contracts.PingRequest), global::Distask.Contracts.PingRequest.Parser, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Distask.Contracts.PingResponse), global::Distask.Contracts.PingResponse.Parser, new[]{ "Status" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Distask.Contracts.RegistrationRequest), global::Distask.Contracts.RegistrationRequest.Parser, new[]{ "Name", "Group", "Host", "Port" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Distask.Contracts.RegistrationResponse), global::Distask.Contracts.RegistrationResponse.Parser, new[]{ "Status" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Distask.Contracts.RegistrationResponse), global::Distask.Contracts.RegistrationResponse.Parser, new[]{ "Status", "ErrorMessage" }, null, null, null)
           }));
     }
     #endregion
@@ -897,6 +898,7 @@ namespace Distask.Contracts {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public RegistrationResponse(RegistrationResponse other) : this() {
       status_ = other.status_;
+      errorMessage_ = other.errorMessage_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -916,6 +918,17 @@ namespace Distask.Contracts {
       }
     }
 
+    /// <summary>Field number for the "errorMessage" field.</summary>
+    public const int ErrorMessageFieldNumber = 2;
+    private string errorMessage_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string ErrorMessage {
+      get { return errorMessage_; }
+      set {
+        errorMessage_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as RegistrationResponse);
@@ -930,6 +943,7 @@ namespace Distask.Contracts {
         return true;
       }
       if (Status != other.Status) return false;
+      if (ErrorMessage != other.ErrorMessage) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -937,6 +951,7 @@ namespace Distask.Contracts {
     public override int GetHashCode() {
       int hash = 1;
       if (Status != 0) hash ^= Status.GetHashCode();
+      if (ErrorMessage.Length != 0) hash ^= ErrorMessage.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -954,6 +969,10 @@ namespace Distask.Contracts {
         output.WriteRawTag(8);
         output.WriteEnum((int) Status);
       }
+      if (ErrorMessage.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(ErrorMessage);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -964,6 +983,9 @@ namespace Distask.Contracts {
       int size = 0;
       if (Status != 0) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Status);
+      }
+      if (ErrorMessage.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(ErrorMessage);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -979,6 +1001,9 @@ namespace Distask.Contracts {
       if (other.Status != 0) {
         Status = other.Status;
       }
+      if (other.ErrorMessage.Length != 0) {
+        ErrorMessage = other.ErrorMessage;
+      }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -992,6 +1017,10 @@ namespace Distask.Contracts {
             break;
           case 8: {
             status_ = (global::Distask.Contracts.StatusCode) input.ReadEnum();
+            break;
+          }
+          case 18: {
+            ErrorMessage = input.ReadString();
             break;
           }
         }

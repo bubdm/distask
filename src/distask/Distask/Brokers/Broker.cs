@@ -5,34 +5,24 @@ using System.Threading.Tasks;
 using Distask.Contracts;
 using Grpc.Core;
 using static Distask.Contracts.DistaskService;
+using Microsoft.Extensions.Logging;
 
 namespace Distask.Brokers
 {
-    public class Broker : DistaskServiceBase, IBroker
+    public sealed class Broker : DistaskServiceBase
     {
+        private readonly ILogger logger;
         private readonly List<BrokerTask> tasks = new List<BrokerTask>();
 
-        public Broker(string name, string group, IEnumerable<BrokerTask> tasks)
+        public Broker(IEnumerable<BrokerTask> tasks, ILoggerFactory loggerFactory)
         {
-            this.Name = name;
-            this.Group = group;
+            this.logger = loggerFactory.CreateLogger<Broker>();
+
             if (tasks != null)
             {
                 this.tasks.AddRange(tasks);
             }
         }
-
-        public Broker(string name, string group)
-            : this(name, group, null)
-        { }
-
-        public Broker(string name)
-            : this(name, "default")
-        { }
-
-        public string Name { get; }
-
-        public string Group { get; }
 
         public override async Task<DistaskResponse> Execute(DistaskRequest request, ServerCallContext context)
         {

@@ -3,7 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28010.2036
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Distask", "Distask\Distask.csproj", "{4551E7FB-B767-491C-B7C7-8E687469E588}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Distask", "Distask\Distask.csproj", "{4551E7FB-B767-491C-B7C7-8E687469E588}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Distask.Hosting", "Distask.Hosting\Distask.Hosting.csproj", "{43611E16-BFD3-406B-AFFC-F618E7E3489B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Distask.ConsoleApp", "Distask.ConsoleApp\Distask.ConsoleApp.csproj", "{4F551A46-F35B-406A-A491-6ADE0407BACB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +19,14 @@ Global
 		{4551E7FB-B767-491C-B7C7-8E687469E588}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4551E7FB-B767-491C-B7C7-8E687469E588}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4551E7FB-B767-491C-B7C7-8E687469E588}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43611E16-BFD3-406B-AFFC-F618E7E3489B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43611E16-BFD3-406B-AFFC-F618E7E3489B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43611E16-BFD3-406B-AFFC-F618E7E3489B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43611E16-BFD3-406B-AFFC-F618E7E3489B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F551A46-F35B-406A-A491-6ADE0407BACB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F551A46-F35B-406A-A491-6ADE0407BACB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F551A46-F35B-406A-A491-6ADE0407BACB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F551A46-F35B-406A-A491-6ADE0407BACB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

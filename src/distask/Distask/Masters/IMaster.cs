@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Distask.Masters
 {
-    public interface IMaster
+    public interface IMaster : IDisposable
     {
         Task<ResponseMessage> ExecuteAsync(RequestMessage requestMessage, string group = null, CancellationToken cancellationToken = default(CancellationToken));
     }

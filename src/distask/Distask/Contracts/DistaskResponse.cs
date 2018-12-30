@@ -18,6 +18,12 @@ namespace Distask.Contracts
             Status = StatusCode.Success
         };
 
+        public static DistaskResponse Success(string result) => new DistaskResponse
+        {
+            Status = StatusCode.Success,
+            Result = result
+        };
+
         public static DistaskResponse Error(string errorMessage) => new DistaskResponse
         {
             Status = StatusCode.Error,
