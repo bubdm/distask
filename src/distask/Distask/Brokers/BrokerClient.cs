@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Timers;
 using Distask.Contracts;
 using Grpc.Core;
 using static Distask.Contracts.DistaskService;
@@ -11,7 +14,11 @@ namespace Distask.Brokers
     {
         #region Private Fields
 
+        private long totalPingCount = 0L;
+        private long successPingCount = 0L;
+
         private readonly Channel channel;
+        private readonly DistaskServiceClient wrappedClient;
 
         private bool disposedValue = false;
 
@@ -23,7 +30,8 @@ namespace Distask.Brokers
         {
             this.Name = name;
             this.channel = new Channel(host, port, channelCredentials);
-            this.Client = new DistaskServiceClient(channel);
+            this.wrappedClient = new DistaskServiceClient(channel);
+
         }
 
         #endregion Public Constructors
@@ -40,8 +48,9 @@ namespace Distask.Brokers
 
         #region Public Properties
 
-        public DistaskServiceClient Client { get; }
         public string Name { get; }
+
+        public float HealthScore => totalPingCount == 0 ? 100F : successPingCount * 100F / totalPingCount;
 
         #endregion Public Properties
 
@@ -69,6 +78,21 @@ namespace Distask.Brokers
                 }
 
                 disposedValue = true;
+            }
+        }
+
+        public async Task<DistaskResponse> ExecuteAsync(DistaskRequest request, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            totalPingCount++;
+            try
+            {
+                var response = await wrappedClient.ExecuteAsync(request, cancellationToken: cancellationToken);
+                successPingCount++;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                return DistaskResponse.Exception(ex);
             }
         }
 

@@ -35,7 +35,7 @@ namespace Distask.Masters
         /// <value>
         /// The name of the task.
         /// </value>
-        string TaskName { get; }
+        public string TaskName { get; }
 
         /// <summary>
         /// Gets the parameters of the execution.

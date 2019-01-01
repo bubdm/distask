@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Distask.Masters;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -35,5 +36,22 @@ namespace Distask.Contracts
             Status = StatusCode.Warning,
             ErrorMessage = warningMessage
         };
+
+        public ResponseMessage ToResponseMessage()
+        {
+            var status = Masters.Status.Success;
+            switch (this.Status)
+            {
+                case StatusCode.Error:
+                    status = Masters.Status.Error;
+                    break;
+                case StatusCode.Warning:
+                    status = Masters.Status.Warning;
+                    break;
+                default: break;
+            }
+
+            return new ResponseMessage(status, this.Result, this.ErrorMessage, this.StackTrace);
+        }
     }
 }

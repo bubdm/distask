@@ -19,14 +19,6 @@ message DistaskResponse {
     string stackTrace = 4;
 };
 
-message PingRequest {
-
-};
-
-message PingResponse {
-    StatusCode status = 1;
-};
-
 message RegistrationRequest {
     string name = 1;
     string group = 2;
@@ -36,11 +28,11 @@ message RegistrationRequest {
 
 message RegistrationResponse {
     StatusCode status = 1;
+    string errorMessage = 2;
 };
 
 service DistaskService {
     rpc Execute(DistaskRequest) returns (DistaskResponse) {}
-    rpc Ping(PingRequest) returns (PingResponse) {}
 };
 
 service DistaskRegistrationService {

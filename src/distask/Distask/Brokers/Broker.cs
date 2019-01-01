@@ -31,7 +31,9 @@ namespace Distask.Brokers
                         select t).FirstOrDefault();
             if (task == null)
             {
-                return DistaskResponse.Error($"Task '{request.TaskName}' has not been registered to the broker.");
+                var errorMessage = $"Task '{request.TaskName}' has not been registered to the broker.";
+                this.logger.LogWarning(errorMessage);
+                return DistaskResponse.Error(errorMessage);
             }
 
             try
@@ -40,16 +42,9 @@ namespace Distask.Brokers
             }
             catch(Exception ex)
             {
+                this.logger.LogError(ex, $"Error occurred while executing the task '{task.Name}'.");
                 return DistaskResponse.Exception(ex);
             }
-        }
-
-        public override Task<PingResponse> Ping(PingRequest request, ServerCallContext context)
-        {
-            return Task.FromResult(new PingResponse
-            {
-                Status = Contracts.StatusCode.Success
-            });
         }
 
         public void AddTask(BrokerTask task)

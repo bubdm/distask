@@ -14,8 +14,6 @@ namespace Distask.Contracts {
 
     static readonly grpc::Marshaller<global::Distask.Contracts.DistaskRequest> __Marshaller_distask_contracts_DistaskRequest = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::Distask.Contracts.DistaskRequest.Parser.ParseFrom);
     static readonly grpc::Marshaller<global::Distask.Contracts.DistaskResponse> __Marshaller_distask_contracts_DistaskResponse = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::Distask.Contracts.DistaskResponse.Parser.ParseFrom);
-    static readonly grpc::Marshaller<global::Distask.Contracts.PingRequest> __Marshaller_distask_contracts_PingRequest = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::Distask.Contracts.PingRequest.Parser.ParseFrom);
-    static readonly grpc::Marshaller<global::Distask.Contracts.PingResponse> __Marshaller_distask_contracts_PingResponse = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::Distask.Contracts.PingResponse.Parser.ParseFrom);
 
     static readonly grpc::Method<global::Distask.Contracts.DistaskRequest, global::Distask.Contracts.DistaskResponse> __Method_Execute = new grpc::Method<global::Distask.Contracts.DistaskRequest, global::Distask.Contracts.DistaskResponse>(
         grpc::MethodType.Unary,
@@ -23,13 +21,6 @@ namespace Distask.Contracts {
         "Execute",
         __Marshaller_distask_contracts_DistaskRequest,
         __Marshaller_distask_contracts_DistaskResponse);
-
-    static readonly grpc::Method<global::Distask.Contracts.PingRequest, global::Distask.Contracts.PingResponse> __Method_Ping = new grpc::Method<global::Distask.Contracts.PingRequest, global::Distask.Contracts.PingResponse>(
-        grpc::MethodType.Unary,
-        __ServiceName,
-        "Ping",
-        __Marshaller_distask_contracts_PingRequest,
-        __Marshaller_distask_contracts_PingResponse);
 
     /// <summary>Service descriptor</summary>
     public static global::Google.Protobuf.Reflection.ServiceDescriptor Descriptor
@@ -41,11 +32,6 @@ namespace Distask.Contracts {
     public abstract partial class DistaskServiceBase
     {
       public virtual global::System.Threading.Tasks.Task<global::Distask.Contracts.DistaskResponse> Execute(global::Distask.Contracts.DistaskRequest request, grpc::ServerCallContext context)
-      {
-        throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
-      }
-
-      public virtual global::System.Threading.Tasks.Task<global::Distask.Contracts.PingResponse> Ping(global::Distask.Contracts.PingRequest request, grpc::ServerCallContext context)
       {
         throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
       }
@@ -91,22 +77,6 @@ namespace Distask.Contracts {
       {
         return CallInvoker.AsyncUnaryCall(__Method_Execute, null, options, request);
       }
-      public virtual global::Distask.Contracts.PingResponse Ping(global::Distask.Contracts.PingRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
-      {
-        return Ping(request, new grpc::CallOptions(headers, deadline, cancellationToken));
-      }
-      public virtual global::Distask.Contracts.PingResponse Ping(global::Distask.Contracts.PingRequest request, grpc::CallOptions options)
-      {
-        return CallInvoker.BlockingUnaryCall(__Method_Ping, null, options, request);
-      }
-      public virtual grpc::AsyncUnaryCall<global::Distask.Contracts.PingResponse> PingAsync(global::Distask.Contracts.PingRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
-      {
-        return PingAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
-      }
-      public virtual grpc::AsyncUnaryCall<global::Distask.Contracts.PingResponse> PingAsync(global::Distask.Contracts.PingRequest request, grpc::CallOptions options)
-      {
-        return CallInvoker.AsyncUnaryCall(__Method_Ping, null, options, request);
-      }
       /// <summary>Creates a new instance of client from given <c>ClientBaseConfiguration</c>.</summary>
       protected override DistaskServiceClient NewInstance(ClientBaseConfiguration configuration)
       {
@@ -119,8 +89,7 @@ namespace Distask.Contracts {
     public static grpc::ServerServiceDefinition BindService(DistaskServiceBase serviceImpl)
     {
       return grpc::ServerServiceDefinition.CreateBuilder()
-          .AddMethod(__Method_Execute, serviceImpl.Execute)
-          .AddMethod(__Method_Ping, serviceImpl.Ping).Build();
+          .AddMethod(__Method_Execute, serviceImpl.Execute).Build();
     }
 
     /// <summary>Register service method implementations with a service binder. Useful when customizing the service binding logic.
@@ -130,7 +99,6 @@ namespace Distask.Contracts {
     public static void BindService(grpc::ServiceBinderBase serviceBinder, DistaskServiceBase serviceImpl)
     {
       serviceBinder.AddMethod(__Method_Execute, serviceImpl.Execute);
-      serviceBinder.AddMethod(__Method_Ping, serviceImpl.Ping);
     }
 
   }

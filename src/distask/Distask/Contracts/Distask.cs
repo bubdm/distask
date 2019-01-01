@@ -28,28 +28,22 @@ namespace Distask.Contracts {
             "UmVxdWVzdBIQCgh0YXNrTmFtZRgBIAEoCRISCgpwYXJhbWV0ZXJzGAIgAygJ",
             "InoKD0Rpc3Rhc2tSZXNwb25zZRItCgZzdGF0dXMYASABKA4yHS5kaXN0YXNr",
             "LmNvbnRyYWN0cy5TdGF0dXNDb2RlEg4KBnJlc3VsdBgCIAEoCRIUCgxlcnJv",
-            "ck1lc3NhZ2UYAyABKAkSEgoKc3RhY2tUcmFjZRgEIAEoCSINCgtQaW5nUmVx",
-            "dWVzdCI9CgxQaW5nUmVzcG9uc2USLQoGc3RhdHVzGAEgASgOMh0uZGlzdGFz",
-            "ay5jb250cmFjdHMuU3RhdHVzQ29kZSJOChNSZWdpc3RyYXRpb25SZXF1ZXN0",
-            "EgwKBG5hbWUYASABKAkSDQoFZ3JvdXAYAiABKAkSDAoEaG9zdBgDIAEoCRIM",
-            "CgRwb3J0GAQgASgFIlsKFFJlZ2lzdHJhdGlvblJlc3BvbnNlEi0KBnN0YXR1",
-            "cxgBIAEoDjIdLmRpc3Rhc2suY29udHJhY3RzLlN0YXR1c0NvZGUSFAoMZXJy",
-            "b3JNZXNzYWdlGAIgASgJKjEKClN0YXR1c0NvZGUSCwoHU1VDQ0VTUxAAEgsK",
-            "B1dBUk5JTkcQARIJCgVFUlJPUhACMq8BCg5EaXN0YXNrU2VydmljZRJSCgdF",
-            "eGVjdXRlEiEuZGlzdGFzay5jb250cmFjdHMuRGlzdGFza1JlcXVlc3QaIi5k",
-            "aXN0YXNrLmNvbnRyYWN0cy5EaXN0YXNrUmVzcG9uc2UiABJJCgRQaW5nEh4u",
-            "ZGlzdGFzay5jb250cmFjdHMuUGluZ1JlcXVlc3QaHy5kaXN0YXNrLmNvbnRy",
-            "YWN0cy5QaW5nUmVzcG9uc2UiADJ7ChpEaXN0YXNrUmVnaXN0cmF0aW9uU2Vy",
-            "dmljZRJdCghSZWdpc3RlchImLmRpc3Rhc2suY29udHJhY3RzLlJlZ2lzdHJh",
-            "dGlvblJlcXVlc3QaJy5kaXN0YXNrLmNvbnRyYWN0cy5SZWdpc3RyYXRpb25S",
-            "ZXNwb25zZSIAYgZwcm90bzM="));
+            "ck1lc3NhZ2UYAyABKAkSEgoKc3RhY2tUcmFjZRgEIAEoCSJOChNSZWdpc3Ry",
+            "YXRpb25SZXF1ZXN0EgwKBG5hbWUYASABKAkSDQoFZ3JvdXAYAiABKAkSDAoE",
+            "aG9zdBgDIAEoCRIMCgRwb3J0GAQgASgFIlsKFFJlZ2lzdHJhdGlvblJlc3Bv",
+            "bnNlEi0KBnN0YXR1cxgBIAEoDjIdLmRpc3Rhc2suY29udHJhY3RzLlN0YXR1",
+            "c0NvZGUSFAoMZXJyb3JNZXNzYWdlGAIgASgJKjEKClN0YXR1c0NvZGUSCwoH",
+            "U1VDQ0VTUxAAEgsKB1dBUk5JTkcQARIJCgVFUlJPUhACMmQKDkRpc3Rhc2tT",
+            "ZXJ2aWNlElIKB0V4ZWN1dGUSIS5kaXN0YXNrLmNvbnRyYWN0cy5EaXN0YXNr",
+            "UmVxdWVzdBoiLmRpc3Rhc2suY29udHJhY3RzLkRpc3Rhc2tSZXNwb25zZSIA",
+            "MnsKGkRpc3Rhc2tSZWdpc3RyYXRpb25TZXJ2aWNlEl0KCFJlZ2lzdGVyEiYu",
+            "ZGlzdGFzay5jb250cmFjdHMuUmVnaXN0cmF0aW9uUmVxdWVzdBonLmRpc3Rh",
+            "c2suY29udHJhY3RzLlJlZ2lzdHJhdGlvblJlc3BvbnNlIgBiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Distask.Contracts.StatusCode), }, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Distask.Contracts.DistaskRequest), global::Distask.Contracts.DistaskRequest.Parser, new[]{ "TaskName", "Parameters" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Distask.Contracts.DistaskResponse), global::Distask.Contracts.DistaskResponse.Parser, new[]{ "Status", "Result", "ErrorMessage", "StackTrace" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Distask.Contracts.PingRequest), global::Distask.Contracts.PingRequest.Parser, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Distask.Contracts.PingResponse), global::Distask.Contracts.PingResponse.Parser, new[]{ "Status" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Distask.Contracts.RegistrationRequest), global::Distask.Contracts.RegistrationRequest.Parser, new[]{ "Name", "Group", "Host", "Port" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Distask.Contracts.RegistrationResponse), global::Distask.Contracts.RegistrationResponse.Parser, new[]{ "Status", "ErrorMessage" }, null, null, null)
           }));
@@ -429,236 +423,6 @@ namespace Distask.Contracts {
 
   }
 
-  public sealed partial class PingRequest : pb::IMessage<PingRequest> {
-    private static readonly pb::MessageParser<PingRequest> _parser = new pb::MessageParser<PingRequest>(() => new PingRequest());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<PingRequest> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Distask.Contracts.DistaskReflection.Descriptor.MessageTypes[2]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public PingRequest() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public PingRequest(PingRequest other) : this() {
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public PingRequest Clone() {
-      return new PingRequest(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as PingRequest);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(PingRequest other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(PingRequest other) {
-      if (other == null) {
-        return;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-        }
-      }
-    }
-
-  }
-
-  public sealed partial class PingResponse : pb::IMessage<PingResponse> {
-    private static readonly pb::MessageParser<PingResponse> _parser = new pb::MessageParser<PingResponse>(() => new PingResponse());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<PingResponse> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Distask.Contracts.DistaskReflection.Descriptor.MessageTypes[3]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public PingResponse() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public PingResponse(PingResponse other) : this() {
-      status_ = other.status_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public PingResponse Clone() {
-      return new PingResponse(this);
-    }
-
-    /// <summary>Field number for the "status" field.</summary>
-    public const int StatusFieldNumber = 1;
-    private global::Distask.Contracts.StatusCode status_ = 0;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::Distask.Contracts.StatusCode Status {
-      get { return status_; }
-      set {
-        status_ = value;
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as PingResponse);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(PingResponse other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (Status != other.Status) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (Status != 0) hash ^= Status.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (Status != 0) {
-        output.WriteRawTag(8);
-        output.WriteEnum((int) Status);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (Status != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Status);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(PingResponse other) {
-      if (other == null) {
-        return;
-      }
-      if (other.Status != 0) {
-        Status = other.Status;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 8: {
-            status_ = (global::Distask.Contracts.StatusCode) input.ReadEnum();
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
   public sealed partial class RegistrationRequest : pb::IMessage<RegistrationRequest> {
     private static readonly pb::MessageParser<RegistrationRequest> _parser = new pb::MessageParser<RegistrationRequest>(() => new RegistrationRequest());
     private pb::UnknownFieldSet _unknownFields;
@@ -667,7 +431,7 @@ namespace Distask.Contracts {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Distask.Contracts.DistaskReflection.Descriptor.MessageTypes[4]; }
+      get { return global::Distask.Contracts.DistaskReflection.Descriptor.MessageTypes[2]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -880,7 +644,7 @@ namespace Distask.Contracts {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Distask.Contracts.DistaskReflection.Descriptor.MessageTypes[5]; }
+      get { return global::Distask.Contracts.DistaskReflection.Descriptor.MessageTypes[3]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Distask.Brokers;
 using Distask.Contracts;
 using Grpc.Core;
 using static Distask.Contracts.DistaskRegistrationService;
+using Google.Protobuf.Collections;
 
 namespace Distask.Masters
 {
@@ -36,9 +35,31 @@ namespace Distask.Masters
             this.registrationServer.Start();
         }
 
-        public Task<ResponseMessage> ExecuteAsync(RequestMessage requestMessage, string group = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<ResponseMessage> ExecuteAsync(RequestMessage requestMessage,
+            string group = Utils.Constants.DefaultGroupName,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException();
+            if (brokerClients.TryGetValue(group, out var clients) &&
+                clients.Count > 0)
+            {
+                // TODO: Apply the routing strategy, currently it is only taking the first
+                // client to serve the request.
+                var client = clients.First();
+
+                Console.WriteLine(client.HealthScore);
+
+                var parameters = new RepeatedField<string> { requestMessage.Parameters };
+                var distaskRequest = new DistaskRequest { TaskName = requestMessage.TaskName };
+                distaskRequest.Parameters.AddRange(requestMessage.Parameters);
+
+                var distaskResponse = await client.ExecuteAsync(distaskRequest);
+
+                return distaskResponse.ToResponseMessage();
+            }
+            else
+            {
+                return ResponseMessage.Error($"Cannot find a client from the group '{group}'.");
+            }
         }
 
         public override Task<RegistrationResponse> Register(RegistrationRequest request, ServerCallContext context)
@@ -55,13 +76,14 @@ namespace Distask.Masters
 
             if (brokerClients.TryGetValue(request.Group, out var clients))
             {
-                if (clients.Any(c => string.Equals(c.Name, request.Name)))
-                {
-                    return Task.FromResult(RegistrationResponse.Error($"Broker '{request.Name}' had already been registered under group '{request.Group}'."));
-                }
+                //var existingClient = clients.FirstOrDefault(c => string.Equals(c.Name, request.Name));
+                //if (existingClient != null)
+                //{
+                //    existingClient.Dispose();
+                //}
 
-                var client = new BrokerClient(request.Name, request.Host, request.Port, ChannelCredentials.Insecure);
-                clients.Add(client);
+                //var client = new BrokerClient(request.Name, request.Host, request.Port, ChannelCredentials.Insecure);
+                //clients.Add(client);
             }
             else
             {
