@@ -36,6 +36,7 @@ namespace Distask.Brokers
                 return DistaskResponse.Error(errorMessage);
             }
 
+            logger.LogDebug($"Task '{task}' has been identified to serve the request '{request}'.");
             try
             {
                 return await task.ExecuteAsync(request.Parameters.ToList(), context.CancellationToken);

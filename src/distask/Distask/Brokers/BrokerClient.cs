@@ -84,18 +84,10 @@ namespace Distask.Brokers
         public async Task<DistaskResponse> ExecuteAsync(DistaskRequest request, CancellationToken cancellationToken = default(CancellationToken))
         {
             totalPingCount++;
-            try
-            {
-                var response = await wrappedClient.ExecuteAsync(request, cancellationToken: cancellationToken);
-                successPingCount++;
-                return response;
-            }
-            catch (Exception ex)
-            {
-                return DistaskResponse.Exception(ex);
-            }
+            var response = await wrappedClient.ExecuteAsync(request, cancellationToken: cancellationToken);
+            successPingCount++;
+            return response;
         }
-
-        #endregion Protected Methods
     }
+    #endregion Protected Methods
 }

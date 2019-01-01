@@ -1,4 +1,4 @@
-﻿using Distask.Masters;
+﻿using Distask.Distributors;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -39,14 +39,14 @@ namespace Distask.Contracts
 
         public ResponseMessage ToResponseMessage()
         {
-            var status = Masters.Status.Success;
+            var status = Distributors.Status.Success;
             switch (this.Status)
             {
                 case StatusCode.Error:
-                    status = Masters.Status.Error;
+                    status = Distributors.Status.Error;
                     break;
                 case StatusCode.Warning:
-                    status = Masters.Status.Warning;
+                    status = Distributors.Status.Warning;
                     break;
                 default: break;
             }

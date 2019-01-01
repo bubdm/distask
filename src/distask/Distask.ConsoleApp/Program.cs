@@ -1,4 +1,4 @@
-﻿using Distask.Masters;
+﻿using Distask.Distributors;
 using System;
 using System.Timers;
 
@@ -8,7 +8,7 @@ namespace Distask.ConsoleApp
     {
         static void Main(string[] args)
         {
-            using (var master = new Master())
+            using (var distributor = new Distributor())
             {
                 var timer = new Timer
                 {
@@ -17,14 +17,21 @@ namespace Distask.ConsoleApp
 
                 timer.Elapsed += (s, e) =>
                  {
-                     var response = master.ExecuteAsync(new RequestMessage("add", new[] { "2", "3" })).Result;
-                     if (response.Status == Status.Success)
+                     try
                      {
-                         Console.WriteLine(response.Result);
+                         var response = distributor.DistributeAsync(new RequestMessage("add", new[] { "2", "3" })).Result;
+                         if (response.Status == Status.Success)
+                         {
+                             Console.WriteLine(response.Result);
+                         }
+                         else
+                         {
+                             Console.WriteLine(response.ErrorMessage);
+                         }
                      }
-                     else
+                     catch(DistaskException dex)
                      {
-                         Console.WriteLine(response.ErrorMessage);
+                         Console.WriteLine(dex.Message);
                      }
                  };
                 timer.Start();

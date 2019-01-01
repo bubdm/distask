@@ -12,6 +12,8 @@ namespace Distask
             public const string BrokerHostConfigurationSectionName = "distask.broker";
 
             public const int MasterDefaultPort = 5919;
+
+            public const int DefaultRetryCount = 5;
         }
     }
 }

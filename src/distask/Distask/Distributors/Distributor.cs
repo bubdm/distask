@@ -8,24 +8,29 @@ using Distask.Contracts;
 using Grpc.Core;
 using static Distask.Contracts.DistaskRegistrationService;
 using Google.Protobuf.Collections;
+using Distask.Routing;
 
-namespace Distask.Masters
+namespace Distask.Distributors
 {
-    public class Master : DistaskRegistrationServiceBase, IMaster
+    public class Distributor : DistaskRegistrationServiceBase, IDistributor
     {
+        private readonly DistributorConfig config;
+        private readonly IRouter router;
         private readonly Server registrationServer;
         private readonly ConcurrentDictionary<string, ConcurrentBag<IBrokerClient>> brokerClients = new ConcurrentDictionary<string, ConcurrentBag<IBrokerClient>>();
 
-        public Master()
-            : this(MasterConfig.AnyAddressDefaultPort)
+        public Distributor()
+            : this(DistributorConfig.AnyAddressDefaultPort, new FirstOccurrenceRouter())
         { }
 
-        public Master(int port)
-            : this(MasterConfig.AnyAddress(port))
+        public Distributor(int port)
+            : this(DistributorConfig.AnyAddress(port), new FirstOccurrenceRouter())
         { }
 
-        public Master(MasterConfig config)
+        public Distributor(DistributorConfig config, IRouter router)
         {
+            this.config = config;
+            this.router = router;
             this.registrationServer = new Server
             {
                 Services = { BindService(this) },
@@ -35,31 +40,69 @@ namespace Distask.Masters
             this.registrationServer.Start();
         }
 
-        public async Task<ResponseMessage> ExecuteAsync(RequestMessage requestMessage,
+        public async Task<ResponseMessage> DistributeAsync(RequestMessage requestMessage,
             string group = Utils.Constants.DefaultGroupName,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (brokerClients.TryGetValue(group, out var clients) &&
                 clients.Count > 0)
             {
-                // TODO: Apply the routing strategy, currently it is only taking the first
-                // client to serve the request.
-                var client = clients.First();
-
-                Console.WriteLine(client.HealthScore);
-
                 var parameters = new RepeatedField<string> { requestMessage.Parameters };
                 var distaskRequest = new DistaskRequest { TaskName = requestMessage.TaskName };
                 distaskRequest.Parameters.AddRange(requestMessage.Parameters);
 
-                var distaskResponse = await client.ExecuteAsync(distaskRequest);
+                if (clients.Count == 1)
+                {
+                    // If only one client has been assigned to the given group, there is no
+                    // need to do a routing since there is only one choice.
+                    var client = clients.First();
+                    var retryCnt = 0;
+                    while (retryCnt < config.RetryCount)
+                    {
+                        try
+                        {
+                            var distaskResponse = await client.ExecuteAsync(distaskRequest, cancellationToken);
+                            return distaskResponse.ToResponseMessage();
+                        }
+                        catch
+                        {
+                            // log
+                        }
 
-                return distaskResponse.ToResponseMessage();
+                        retryCnt++;
+                    }
+
+                    
+                }
+                else
+                {
+                    // If there are more than 2 clients have been assigned to the given group, it should
+                    // use the routing feature to find a proper client to serve the request.
+                    var retryCnt = 0;
+                    while (retryCnt < config.RetryCount)
+                    {
+                        var client = router.GetRoutedClient(group, clients);
+                        if (client != null)
+                        {
+                            try
+                            {
+                                var distaskResponse = await client.ExecuteAsync(distaskRequest, cancellationToken);
+                                return distaskResponse.ToResponseMessage();
+                            }
+                            catch
+                            {
+                                // log
+                            }
+                        }
+
+                        retryCnt++;
+                    }
+                }
+
+                throw new DistributionException("Failed to distribute the task, the routed client was unable to respond in a timely fashion.");
             }
-            else
-            {
-                return ResponseMessage.Error($"Cannot find a client from the group '{group}'.");
-            }
+
+            throw new DistributionException($"No client has been registered to group '{group}' for serving the request.");
         }
 
         public override Task<RegistrationResponse> Register(RegistrationRequest request, ServerCallContext context)
@@ -117,7 +160,7 @@ namespace Distask.Masters
             }
         }
 
-        ~Master()
+        ~Distributor()
         {
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(false);

@@ -28,5 +28,10 @@ namespace Distask.Brokers
         {
             return string.IsNullOrEmpty(Name) ? base.GetHashCode() : Name.GetHashCode();
         }
+
+        public override string ToString()
+        {
+            return Name;
+        }
     }
 }

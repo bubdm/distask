@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Distask.Masters
+namespace Distask.Distributors
 {
     public enum Status
     {
