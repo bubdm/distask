@@ -67,12 +67,9 @@ namespace Distask.Distributors
                         catch
                         {
                             // log
+                            retryCnt++;
                         }
-
-                        retryCnt++;
                     }
-
-                    
                 }
                 else
                 {
@@ -92,10 +89,9 @@ namespace Distask.Distributors
                             catch
                             {
                                 // log
+                                retryCnt++;
                             }
                         }
-
-                        retryCnt++;
                     }
                 }
 

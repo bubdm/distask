@@ -1,5 +1,6 @@
 ﻿using Distask.Distributors;
 using System;
+using System.Threading;
 using System.Timers;
 
 namespace Distask.ConsoleApp
@@ -10,28 +11,29 @@ namespace Distask.ConsoleApp
         {
             using (var distributor = new Distributor())
             {
-                var timer = new Timer
+                var timer = new System.Timers.Timer
                 {
                     Interval = 1000
                 };
 
                 timer.Elapsed += (s, e) =>
                  {
+                     var managedThreadId = Thread.CurrentThread.ManagedThreadId;
                      try
                      {
                          var response = distributor.DistributeAsync(new RequestMessage("add", new[] { "2", "3" })).Result;
                          if (response.Status == Status.Success)
                          {
-                             Console.WriteLine(response.Result);
+                             Console.WriteLine($"Thread [{managedThreadId}] Result: {response.Result}");
                          }
                          else
                          {
                              Console.WriteLine(response.ErrorMessage);
                          }
                      }
-                     catch(DistaskException dex)
+                     catch (AggregateException ex) when (ex.InnerException != null && ex.InnerException is DistaskException dex)
                      {
-                         Console.WriteLine(dex.Message);
+                         Console.WriteLine($"Thread [{managedThreadId}] Failed: {dex.Message}");
                      }
                  };
                 timer.Start();
