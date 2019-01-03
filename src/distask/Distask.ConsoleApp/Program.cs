@@ -1,4 +1,5 @@
 ﻿using Distask.Distributors;
+using Distask.Routing;
 using System;
 using System.Threading;
 using System.Timers;
@@ -9,8 +10,9 @@ namespace Distask.ConsoleApp
     {
         static void Main(string[] args)
         {
-            using (var distributor = new Distributor())
+            using (var distributor = new Distributor(new RandomizedRouter()))
             {
+                distributor.BrokerRegistered += Distributor_BrokerRegistered;
                 var timer = new System.Timers.Timer
                 {
                     Interval = 1000
@@ -39,8 +41,14 @@ namespace Distask.ConsoleApp
                 timer.Start();
                 Console.WriteLine("Master started, press ENTER to exit...");
                 Console.ReadLine();
+                distributor.BrokerRegistered -= Distributor_BrokerRegistered;
                 timer.Stop();
             }
+        }
+
+        private static void Distributor_BrokerRegistered(object sender, BrokerRegisteredEventArgs e)
+        {
+            Console.WriteLine($"New broker registered with the following information: {e}");
         }
     }
 }

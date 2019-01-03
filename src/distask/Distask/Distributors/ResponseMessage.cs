@@ -5,6 +5,9 @@ using System.Text;
 
 namespace Distask.Distributors
 {
+    /// <summary>
+    /// Represents the response message returned from any of the registered broker.
+    /// </summary>
     public class ResponseMessage
     {
         public ResponseMessage(Status status, string result, string errorMessage, string stackTrace)

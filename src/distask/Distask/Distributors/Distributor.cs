@@ -1,23 +1,43 @@
-﻿using System;
-using System.Linq;
-using System.Collections.Concurrent;
-using System.Threading;
-using System.Threading.Tasks;
+﻿/****************************************************************************
+ *           ___      __             __
+ *      ____/ (_)____/ /_____ ______/ /__
+ *     / __  / / ___/ __/ __ `/ ___/ //_/
+ *    / /_/ / (__  ) /_/ /_/ (__  ) ,<
+ *    \__,_/_/____/\__/\__,_/____/_/|_|
+ *
+ * Copyright (C) 2018-2019 by daxnet, https://github.com/daxnet/distask
+ * All rights reserved.
+ * Licensed under MIT License.
+ * https://github.com/daxnet/distask/blob/master/LICENSE
+ ****************************************************************************/
+
 using Distask.Brokers;
 using Distask.Contracts;
-using Grpc.Core;
-using static Distask.Contracts.DistaskRegistrationService;
-using Google.Protobuf.Collections;
 using Distask.Routing;
+using Google.Protobuf.Collections;
+using Grpc.Core;
+using System;
+using System.Collections.Concurrent;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using static Distask.Contracts.DistaskRegistrationService;
 
 namespace Distask.Distributors
 {
     public class Distributor : DistaskRegistrationServiceBase, IDistributor
     {
-        private readonly DistributorConfig config;
-        private readonly IRouter router;
-        private readonly Server registrationServer;
+        #region Private Fields
+
         private readonly ConcurrentDictionary<string, ConcurrentBag<IBrokerClient>> brokerClients = new ConcurrentDictionary<string, ConcurrentBag<IBrokerClient>>();
+        private readonly DistributorConfig config;
+        private readonly Server registrationServer;
+        private readonly IRouter router;
+        private bool disposedValue = false;
+
+        #endregion Private Fields
+
+        #region Public Constructors
 
         public Distributor()
             : this(DistributorConfig.AnyAddressDefaultPort, new FirstOccurrenceRouter())
@@ -25,6 +45,14 @@ namespace Distask.Distributors
 
         public Distributor(int port)
             : this(DistributorConfig.AnyAddress(port), new FirstOccurrenceRouter())
+        { }
+
+        public Distributor(IRouter router)
+            : this(DistributorConfig.AnyAddressDefaultPort, router)
+        { }
+
+        public Distributor(int port, IRouter router)
+            : this(DistributorConfig.AnyAddress(port), router)
         { }
 
         public Distributor(DistributorConfig config, IRouter router)
@@ -40,8 +68,34 @@ namespace Distask.Distributors
             this.registrationServer.Start();
         }
 
+        #endregion Public Constructors
+
+        #region Private Destructors
+
+        ~Distributor()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(false);
+        }
+
+        #endregion Private Destructors
+
+        #region Public Events
+
+        public event EventHandler<BrokerRegisteredEventArgs> BrokerRegistered;
+
+        #endregion Public Events
+
+        #region Public Methods
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
         public async Task<ResponseMessage> DistributeAsync(RequestMessage requestMessage,
-            string group = Utils.Constants.DefaultGroupName,
+                    string group = Utils.Constants.DefaultGroupName,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (brokerClients.TryGetValue(group, out var clients) &&
@@ -50,14 +104,11 @@ namespace Distask.Distributors
                 var parameters = new RepeatedField<string> { requestMessage.Parameters };
                 var distaskRequest = new DistaskRequest { TaskName = requestMessage.TaskName };
                 distaskRequest.Parameters.AddRange(requestMessage.Parameters);
-
-                if (clients.Count == 1)
+                var retryCnt = 0;
+                while (retryCnt < config.RetryCount)
                 {
-                    // If only one client has been assigned to the given group, there is no
-                    // need to do a routing since there is only one choice.
-                    var client = clients.First();
-                    var retryCnt = 0;
-                    while (retryCnt < config.RetryCount)
+                    var client = router.GetRoutedClient(group, clients);
+                    if (client != null)
                     {
                         try
                         {
@@ -68,29 +119,6 @@ namespace Distask.Distributors
                         {
                             // log
                             retryCnt++;
-                        }
-                    }
-                }
-                else
-                {
-                    // If there are more than 2 clients have been assigned to the given group, it should
-                    // use the routing feature to find a proper client to serve the request.
-                    var retryCnt = 0;
-                    while (retryCnt < config.RetryCount)
-                    {
-                        var client = router.GetRoutedClient(group, clients);
-                        if (client != null)
-                        {
-                            try
-                            {
-                                var distaskResponse = await client.ExecuteAsync(distaskRequest, cancellationToken);
-                                return distaskResponse.ToResponseMessage();
-                            }
-                            catch
-                            {
-                                // log
-                                retryCnt++;
-                            }
                         }
                     }
                 }
@@ -115,14 +143,13 @@ namespace Distask.Distributors
 
             if (brokerClients.TryGetValue(request.Group, out var clients))
             {
-                //var existingClient = clients.FirstOrDefault(c => string.Equals(c.Name, request.Name));
-                //if (existingClient != null)
-                //{
-                //    existingClient.Dispose();
-                //}
+                if (clients.Any(c => string.Equals(c.Name, request.Name)))
+                {
+                    return Task.FromResult(RegistrationResponse.Error($"The client '{request.Name}' has already been registered."));
+                }
 
-                //var client = new BrokerClient(request.Name, request.Host, request.Port, ChannelCredentials.Insecure);
-                //clients.Add(client);
+                var newBroker = new BrokerClient(request.Name, request.Host, request.Port, ChannelCredentials.Insecure);
+                clients.Add(newBroker);
             }
             else
             {
@@ -130,11 +157,14 @@ namespace Distask.Distributors
                 brokerClients.TryAdd(request.Group, clients);
             }
 
+            this.OnBrokerRegistered(new BrokerRegisteredEventArgs(request.Group, request.Name, request.Host, request.Port));
+
             return Task.FromResult(RegistrationResponse.Success());
         }
 
-        #region IDisposable Support
-        private bool disposedValue = false;
+        #endregion Public Methods
+
+        #region Protected Methods
 
         protected virtual void Dispose(bool disposing)
         {
@@ -156,17 +186,8 @@ namespace Distask.Distributors
             }
         }
 
-        ~Distributor()
-        {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            Dispose(false);
-        }
+        protected virtual void OnBrokerRegistered(BrokerRegisteredEventArgs e) => this.BrokerRegistered?.Invoke(this, e);
 
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-        #endregion
+        #endregion Protected Methods
     }
 }

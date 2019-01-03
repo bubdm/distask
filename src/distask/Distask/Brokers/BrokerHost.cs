@@ -87,7 +87,7 @@ namespace Distask.Brokers
                             Host = this.options.Host,
                             Port = this.options.Port,
                             Group = this.options.Group ?? Utils.Constants.DefaultGroupName
-                        }, cancellationToken: cancellationToken);
+                        }, deadline: DateTime.UtcNow.AddSeconds(10).ToUniversalTime(), cancellationToken: cancellationToken);
 
                         if (registrationResponse.Status == Contracts.StatusCode.Success)
                         {
@@ -96,13 +96,13 @@ namespace Distask.Brokers
                         }
                         else
                         {
-                            logger.LogWarning($"Registration to master {this.options.Master.Host}:{this.options.Master.Port} failed. Retrying...");
+                            logger.LogWarning($"Registration to master {this.options.Master.Host}:{this.options.Master.Port} failed. Reason: {registrationResponse.ErrorMessage}. Retrying...");
                             await Task.Delay(5000);
                         }
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        logger.LogWarning($"Registration to master {this.options.Master.Host}:{this.options.Master.Port} failed. Retrying...");
+                        logger.LogWarning($"Registration to master {this.options.Master.Host}:{this.options.Master.Port} failed. Reason: {ex.Message}. Retrying...");
                         await Task.Delay(5000);
                     }
                 }
