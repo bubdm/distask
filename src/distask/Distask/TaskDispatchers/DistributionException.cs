@@ -14,7 +14,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace Distask.Distributors
+namespace Distask.TaskDispatchers
 {
     /// <summary>
     /// Represents the error that occurs when a task is being distributed.

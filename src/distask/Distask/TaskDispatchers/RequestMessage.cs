@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Distask.Distributors
+namespace Distask.TaskDispatchers
 {
     /// <summary>
     /// Represents the message that will be distributed to the brokers for executing.

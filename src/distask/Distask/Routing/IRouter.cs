@@ -1,12 +1,14 @@
 ﻿using Distask.Brokers;
+using Distask.TaskDispatchers;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Distask.Routing
 {
     public interface IRouter
     {
-        IBrokerClient GetRoutedClient(string group, IEnumerable<IBrokerClient> clients);
+        Task<IBrokerClient> GetRoutedClientAsync(string group, IEnumerable<IBrokerClient> clients);
     }
 }

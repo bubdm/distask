@@ -30,22 +30,25 @@ namespace Distask.Contracts {
             "LmNvbnRyYWN0cy5TdGF0dXNDb2RlEg4KBnJlc3VsdBgCIAEoCRIUCgxlcnJv",
             "ck1lc3NhZ2UYAyABKAkSEgoKc3RhY2tUcmFjZRgEIAEoCSJOChNSZWdpc3Ry",
             "YXRpb25SZXF1ZXN0EgwKBG5hbWUYASABKAkSDQoFZ3JvdXAYAiABKAkSDAoE",
-            "aG9zdBgDIAEoCRIMCgRwb3J0GAQgASgFIlsKFFJlZ2lzdHJhdGlvblJlc3Bv",
-            "bnNlEi0KBnN0YXR1cxgBIAEoDjIdLmRpc3Rhc2suY29udHJhY3RzLlN0YXR1",
-            "c0NvZGUSFAoMZXJyb3JNZXNzYWdlGAIgASgJKjEKClN0YXR1c0NvZGUSCwoH",
-            "U1VDQ0VTUxAAEgsKB1dBUk5JTkcQARIJCgVFUlJPUhACMmQKDkRpc3Rhc2tT",
-            "ZXJ2aWNlElIKB0V4ZWN1dGUSIS5kaXN0YXNrLmNvbnRyYWN0cy5EaXN0YXNr",
-            "UmVxdWVzdBoiLmRpc3Rhc2suY29udHJhY3RzLkRpc3Rhc2tSZXNwb25zZSIA",
-            "MnsKGkRpc3Rhc2tSZWdpc3RyYXRpb25TZXJ2aWNlEl0KCFJlZ2lzdGVyEiYu",
-            "ZGlzdGFzay5jb250cmFjdHMuUmVnaXN0cmF0aW9uUmVxdWVzdBonLmRpc3Rh",
-            "c2suY29udHJhY3RzLlJlZ2lzdHJhdGlvblJlc3BvbnNlIgBiBnByb3RvMw=="));
+            "aG9zdBgDIAEoCRIMCgRwb3J0GAQgASgFIt0BChRSZWdpc3RyYXRpb25SZXNw",
+            "b25zZRItCgZzdGF0dXMYASABKA4yHS5kaXN0YXNrLmNvbnRyYWN0cy5TdGF0",
+            "dXNDb2RlEhUKDXJlamVjdE1lc3NhZ2UYAiABKAkSRAoGcmVhc29uGAMgASgO",
+            "MjQuZGlzdGFzay5jb250cmFjdHMuUmVnaXN0cmF0aW9uUmVzcG9uc2UuUmVq",
+            "ZWN0UmVhc29uIjkKDFJlamVjdFJlYXNvbhIICgROT05FEAASCwoHR0VORVJB",
+            "TBABEhIKDkFMUkVBRFlfRVhJU1RTEAIqMQoKU3RhdHVzQ29kZRILCgdTVUND",
+            "RVNTEAASCwoHV0FSTklORxABEgkKBUVSUk9SEAIyZAoORGlzdGFza1NlcnZp",
+            "Y2USUgoHRXhlY3V0ZRIhLmRpc3Rhc2suY29udHJhY3RzLkRpc3Rhc2tSZXF1",
+            "ZXN0GiIuZGlzdGFzay5jb250cmFjdHMuRGlzdGFza1Jlc3BvbnNlIgAyewoa",
+            "RGlzdGFza1JlZ2lzdHJhdGlvblNlcnZpY2USXQoIUmVnaXN0ZXISJi5kaXN0",
+            "YXNrLmNvbnRyYWN0cy5SZWdpc3RyYXRpb25SZXF1ZXN0GicuZGlzdGFzay5j",
+            "b250cmFjdHMuUmVnaXN0cmF0aW9uUmVzcG9uc2UiAGIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Distask.Contracts.StatusCode), }, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Distask.Contracts.DistaskRequest), global::Distask.Contracts.DistaskRequest.Parser, new[]{ "TaskName", "Parameters" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Distask.Contracts.DistaskResponse), global::Distask.Contracts.DistaskResponse.Parser, new[]{ "Status", "Result", "ErrorMessage", "StackTrace" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Distask.Contracts.RegistrationRequest), global::Distask.Contracts.RegistrationRequest.Parser, new[]{ "Name", "Group", "Host", "Port" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Distask.Contracts.RegistrationResponse), global::Distask.Contracts.RegistrationResponse.Parser, new[]{ "Status", "ErrorMessage" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Distask.Contracts.RegistrationResponse), global::Distask.Contracts.RegistrationResponse.Parser, new[]{ "Status", "RejectMessage", "Reason" }, null, new[]{ typeof(global::Distask.Contracts.RegistrationResponse.Types.RejectReason) }, null)
           }));
     }
     #endregion
@@ -662,7 +665,8 @@ namespace Distask.Contracts {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public RegistrationResponse(RegistrationResponse other) : this() {
       status_ = other.status_;
-      errorMessage_ = other.errorMessage_;
+      rejectMessage_ = other.rejectMessage_;
+      reason_ = other.reason_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -682,14 +686,25 @@ namespace Distask.Contracts {
       }
     }
 
-    /// <summary>Field number for the "errorMessage" field.</summary>
-    public const int ErrorMessageFieldNumber = 2;
-    private string errorMessage_ = "";
+    /// <summary>Field number for the "rejectMessage" field.</summary>
+    public const int RejectMessageFieldNumber = 2;
+    private string rejectMessage_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string ErrorMessage {
-      get { return errorMessage_; }
+    public string RejectMessage {
+      get { return rejectMessage_; }
       set {
-        errorMessage_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        rejectMessage_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "reason" field.</summary>
+    public const int ReasonFieldNumber = 3;
+    private global::Distask.Contracts.RegistrationResponse.Types.RejectReason reason_ = 0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::Distask.Contracts.RegistrationResponse.Types.RejectReason Reason {
+      get { return reason_; }
+      set {
+        reason_ = value;
       }
     }
 
@@ -707,7 +722,8 @@ namespace Distask.Contracts {
         return true;
       }
       if (Status != other.Status) return false;
-      if (ErrorMessage != other.ErrorMessage) return false;
+      if (RejectMessage != other.RejectMessage) return false;
+      if (Reason != other.Reason) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -715,7 +731,8 @@ namespace Distask.Contracts {
     public override int GetHashCode() {
       int hash = 1;
       if (Status != 0) hash ^= Status.GetHashCode();
-      if (ErrorMessage.Length != 0) hash ^= ErrorMessage.GetHashCode();
+      if (RejectMessage.Length != 0) hash ^= RejectMessage.GetHashCode();
+      if (Reason != 0) hash ^= Reason.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -733,9 +750,13 @@ namespace Distask.Contracts {
         output.WriteRawTag(8);
         output.WriteEnum((int) Status);
       }
-      if (ErrorMessage.Length != 0) {
+      if (RejectMessage.Length != 0) {
         output.WriteRawTag(18);
-        output.WriteString(ErrorMessage);
+        output.WriteString(RejectMessage);
+      }
+      if (Reason != 0) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) Reason);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -748,8 +769,11 @@ namespace Distask.Contracts {
       if (Status != 0) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Status);
       }
-      if (ErrorMessage.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(ErrorMessage);
+      if (RejectMessage.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(RejectMessage);
+      }
+      if (Reason != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Reason);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -765,8 +789,11 @@ namespace Distask.Contracts {
       if (other.Status != 0) {
         Status = other.Status;
       }
-      if (other.ErrorMessage.Length != 0) {
-        ErrorMessage = other.ErrorMessage;
+      if (other.RejectMessage.Length != 0) {
+        RejectMessage = other.RejectMessage;
+      }
+      if (other.Reason != 0) {
+        Reason = other.Reason;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -784,12 +811,29 @@ namespace Distask.Contracts {
             break;
           }
           case 18: {
-            ErrorMessage = input.ReadString();
+            RejectMessage = input.ReadString();
+            break;
+          }
+          case 24: {
+            reason_ = (global::Distask.Contracts.RegistrationResponse.Types.RejectReason) input.ReadEnum();
             break;
           }
         }
       }
     }
+
+    #region Nested types
+    /// <summary>Container for nested types declared in the RegistrationResponse message type.</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static partial class Types {
+      public enum RejectReason {
+        [pbr::OriginalName("NONE")] None = 0,
+        [pbr::OriginalName("GENERAL")] General = 1,
+        [pbr::OriginalName("ALREADY_EXISTS")] AlreadyExists = 2,
+      }
+
+    }
+    #endregion
 
   }
 

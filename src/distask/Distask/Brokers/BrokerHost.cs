@@ -59,14 +59,7 @@ namespace Distask.Brokers
             await Task.Factory.StartNew(async () =>
             {
                 logger.LogInformation("Starting Broker Host {0} ...", this.options.Name);
-                this.server = new Server
-                {
-                    Services = { DistaskService.BindService(this.broker) },
-                    Ports = { new ServerPort(this.options.Host, this.options.Port, ServerCredentials.Insecure) }
-                };
-
-                this.server.Start();
-                logger.LogInformation("Started Broker Host {0}.", this.options.Name);
+                
                 logger.LogInformation($"Registering BrokerHost to master {this.options.Master.Host}:{this.options.Master.Port}...");
                 var registrationChannel = new Channel(this.options.Master.Host,
                     this.options.Master.Port, ChannelCredentials.Insecure); // TODO: Make the channel credential configurable.
@@ -96,13 +89,21 @@ namespace Distask.Brokers
                         }
                         else
                         {
-                            logger.LogWarning($"Registration to master {this.options.Master.Host}:{this.options.Master.Port} failed. Reason: {registrationResponse.ErrorMessage}. Retrying...");
-                            await Task.Delay(5000);
+                            if (registrationResponse.Reason == RegistrationResponse.Types.RejectReason.AlreadyExists)
+                            {
+                                logger.LogWarning($"Registration to master {this.options.Master.Host}:{this.options.Master.Port} failed. The name '{this.options.Name}' or the host/port '{this.options.Host}:{this.options.Port}' had already been registered.");
+                                break;
+                            }
+                            else
+                            {
+                                logger.LogWarning($"Registration to master {this.options.Master.Host}:{this.options.Master.Port} failed. Reject Message: {registrationResponse.RejectMessage}. Retrying...");
+                                await Task.Delay(5000);
+                            }
                         }
                     }
                     catch (Exception ex)
                     {
-                        logger.LogWarning($"Registration to master {this.options.Master.Host}:{this.options.Master.Port} failed. Reason: {ex.Message}. Retrying...");
+                        logger.LogWarning($"Registration to master {this.options.Master.Host}:{this.options.Master.Port} failed. Error Message: {ex.Message}. Retrying...");
                         await Task.Delay(5000);
                     }
                 }
@@ -112,6 +113,16 @@ namespace Distask.Brokers
                 if (registered)
                 {
                     logger.LogInformation($"BrokerHost has been successfully registered to master {this.options.Master.Host}:{this.options.Master.Port}.");
+
+                    this.server = new Server
+                    {
+                        Services = { DistaskService.BindService(this.broker) },
+                        Ports = { new ServerPort(this.options.Host, this.options.Port, ServerCredentials.Insecure) }
+                    };
+
+                    this.server.Start();
+
+                    logger.LogInformation("BrokerHost is ready for accepting distributed tasks.");
                 }
             });
         }

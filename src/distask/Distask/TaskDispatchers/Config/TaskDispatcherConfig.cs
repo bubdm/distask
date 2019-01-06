@@ -11,28 +11,28 @@
  * https://github.com/daxnet/distask/blob/master/LICENSE
  ****************************************************************************/
 
-namespace Distask.Distributors
+namespace Distask.TaskDispatchers.Config
 {
-    public class DistributorConfig
+    public class TaskDispatcherConfig
     {
         #region Public Fields
 
-        public static readonly DistributorConfig AnyAddressDefaultPort = new DistributorConfig("0.0.0.0", Utils.Constants.MasterDefaultPort);
+        public static readonly TaskDispatcherConfig AnyAddressDefaultPort = new TaskDispatcherConfig("0.0.0.0", Utils.Constants.MasterDefaultPort);
 
         #endregion Public Fields
 
         #region Public Constructors
 
-        public DistributorConfig(string host, int port)
-            : this(host, port, Utils.Constants.DefaultRetryCount)
+        public TaskDispatcherConfig(string host, int port)
+            : this(host, port, BrokerClientConfig.DefaultBrokerClientConfig)
         {
         }
 
-        public DistributorConfig(string host, int port, int retryCount)
+        public TaskDispatcherConfig(string host, int port, BrokerClientConfig brokerClientConfig)
         {
             Host = host;
             Port = port;
-            RetryCount = retryCount;
+            this.BrokerClient = brokerClientConfig;
         }
 
         #endregion Public Constructors
@@ -43,13 +43,13 @@ namespace Distask.Distributors
 
         public int Port { get; set; }
 
-        public int RetryCount { get; set; }
+        public BrokerClientConfig BrokerClient { get; set; }
 
         #endregion Public Properties
 
         #region Public Methods
 
-        public static DistributorConfig AnyAddress(int port) => new DistributorConfig("0.0.0.0", port);
+        public static TaskDispatcherConfig AnyAddress(int port) => new TaskDispatcherConfig("0.0.0.0", port);
 
         #endregion Public Methods
     }

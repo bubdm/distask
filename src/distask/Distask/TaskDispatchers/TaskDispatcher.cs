@@ -13,6 +13,7 @@
 
 using Distask.Brokers;
 using Distask.Contracts;
+using Distask.TaskDispatchers.Config;
 using Distask.Routing;
 using Google.Protobuf.Collections;
 using Grpc.Core;
@@ -23,14 +24,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using static Distask.Contracts.DistaskRegistrationService;
 
-namespace Distask.Distributors
+namespace Distask.TaskDispatchers
 {
-    public class Distributor : DistaskRegistrationServiceBase, IDistributor
+    public class TaskDispatcher : DistaskRegistrationServiceBase, ITaskDispatcher
     {
+
         #region Private Fields
 
         private readonly ConcurrentDictionary<string, ConcurrentBag<IBrokerClient>> brokerClients = new ConcurrentDictionary<string, ConcurrentBag<IBrokerClient>>();
-        private readonly DistributorConfig config;
+        private readonly TaskDispatcherConfig config;
         private readonly Server registrationServer;
         private readonly IRouter router;
         private bool disposedValue = false;
@@ -39,23 +41,23 @@ namespace Distask.Distributors
 
         #region Public Constructors
 
-        public Distributor()
-            : this(DistributorConfig.AnyAddressDefaultPort, new FirstOccurrenceRouter())
+        public TaskDispatcher()
+            : this(TaskDispatcherConfig.AnyAddressDefaultPort, new FirstOccurrenceRouter())
         { }
 
-        public Distributor(int port)
-            : this(DistributorConfig.AnyAddress(port), new FirstOccurrenceRouter())
+        public TaskDispatcher(int port)
+            : this(TaskDispatcherConfig.AnyAddress(port), new FirstOccurrenceRouter())
         { }
 
-        public Distributor(IRouter router)
-            : this(DistributorConfig.AnyAddressDefaultPort, router)
+        public TaskDispatcher(IRouter router)
+            : this(TaskDispatcherConfig.AnyAddressDefaultPort, router)
         { }
 
-        public Distributor(int port, IRouter router)
-            : this(DistributorConfig.AnyAddress(port), router)
+        public TaskDispatcher(int port, IRouter router)
+            : this(TaskDispatcherConfig.AnyAddress(port), router)
         { }
 
-        public Distributor(DistributorConfig config, IRouter router)
+        public TaskDispatcher(TaskDispatcherConfig config, IRouter router)
         {
             this.config = config;
             this.router = router;
@@ -72,7 +74,7 @@ namespace Distask.Distributors
 
         #region Private Destructors
 
-        ~Distributor()
+        ~TaskDispatcher()
         {
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(false);
@@ -82,7 +84,7 @@ namespace Distask.Distributors
 
         #region Public Events
 
-        public event EventHandler<BrokerRegisteredEventArgs> BrokerRegistered;
+        public event EventHandler<BrokerClientRegisteredEventArgs> BrokerClientRegistered;
 
         #endregion Public Events
 
@@ -94,7 +96,7 @@ namespace Distask.Distributors
             GC.SuppressFinalize(this);
         }
 
-        public async Task<ResponseMessage> DistributeAsync(RequestMessage requestMessage,
+        public async Task<ResponseMessage> DispatchAsync(RequestMessage requestMessage,
                     string group = Utils.Constants.DefaultGroupName,
             CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -104,22 +106,18 @@ namespace Distask.Distributors
                 var parameters = new RepeatedField<string> { requestMessage.Parameters };
                 var distaskRequest = new DistaskRequest { TaskName = requestMessage.TaskName };
                 distaskRequest.Parameters.AddRange(requestMessage.Parameters);
-                var retryCnt = 0;
-                while (retryCnt < config.RetryCount)
+                var client = await router.GetRoutedClientAsync(group, clients);
+                if (client != null)
                 {
-                    var client = router.GetRoutedClient(group, clients);
-                    if (client != null)
+                    try
                     {
-                        try
-                        {
-                            var distaskResponse = await client.ExecuteAsync(distaskRequest, cancellationToken);
-                            return distaskResponse.ToResponseMessage();
-                        }
-                        catch
-                        {
-                            // log
-                            retryCnt++;
-                        }
+                        Console.WriteLine(client.ToString());
+                        var distaskResponse = await client.ExecuteAsync(distaskRequest, cancellationToken);
+                        return distaskResponse.ToResponseMessage();
+                    }
+                    catch (Exception ex)
+                    {
+                        // log
                     }
                 }
 
@@ -143,21 +141,21 @@ namespace Distask.Distributors
 
             if (brokerClients.TryGetValue(request.Group, out var clients))
             {
-                if (clients.Any(c => string.Equals(c.Name, request.Name)))
+                if (clients.Any(c => string.Equals(c.Name, request.Name) || (string.Equals(c.Host, request.Host) && c.Port == request.Port)))
                 {
-                    return Task.FromResult(RegistrationResponse.Error($"The client '{request.Name}' has already been registered."));
+                    return Task.FromResult(RegistrationResponse.AlreadyExists($"The client '{request.Name}' has already been registered."));
                 }
 
-                var newBroker = new BrokerClient(request.Name, request.Host, request.Port, ChannelCredentials.Insecure);
+                var newBroker = CreateBrokerClient(request.Name, request.Host, request.Port);
                 clients.Add(newBroker);
             }
             else
             {
-                clients = new ConcurrentBag<IBrokerClient>(new[] { new BrokerClient(request.Name, request.Host, request.Port, ChannelCredentials.Insecure) });
+                clients = new ConcurrentBag<IBrokerClient>(new[] { CreateBrokerClient(request.Name, request.Host, request.Port) });
                 brokerClients.TryAdd(request.Group, clients);
             }
 
-            this.OnBrokerRegistered(new BrokerRegisteredEventArgs(request.Group, request.Name, request.Host, request.Port));
+            this.OnBrokerRegistered(new BrokerClientRegisteredEventArgs(request.Group, request.Name, request.Host, request.Port));
 
             return Task.FromResult(RegistrationResponse.Success());
         }
@@ -178,7 +176,7 @@ namespace Distask.Distributors
                     // Dispose all clients.
                     foreach (var brokerClient in brokerClients.SelectMany(c => c.Value))
                     {
-                        brokerClient.Dispose();
+                        this.DisposeBrokerClient(brokerClient);
                     }
                 }
 
@@ -186,8 +184,46 @@ namespace Distask.Distributors
             }
         }
 
-        protected virtual void OnBrokerRegistered(BrokerRegisteredEventArgs e) => this.BrokerRegistered?.Invoke(this, e);
+        protected virtual void OnBrokerRegistered(BrokerClientRegisteredEventArgs e) => this.BrokerClientRegistered?.Invoke(this, e);
 
         #endregion Protected Methods
+
+        #region Private Methods
+
+        private IBrokerClient CreateBrokerClient(string brokerName, string brokerHost, int brokerPort)
+        {
+            var createdClient = new BrokerClient(brokerName, brokerHost, brokerPort, ChannelCredentials.Insecure, this.config);
+            createdClient.CircuitBroken += CreatedClient_CircuitBroken;
+            createdClient.CircuitHalfOpen += CreatedClient_CircuitHalfOpen;
+            createdClient.CircuitReset += CreatedClient_CircuitReset;
+
+            return createdClient;
+        }
+
+        private void DisposeBrokerClient(IBrokerClient brokerClient)
+        {
+            brokerClient.CircuitBroken -= this.CreatedClient_CircuitBroken;
+            brokerClient.CircuitHalfOpen -= this.CreatedClient_CircuitHalfOpen;
+            brokerClient.CircuitReset -= this.CreatedClient_CircuitReset;
+
+            brokerClient.Dispose();
+        }
+
+        private void CreatedClient_CircuitBroken(object sender, BrokerClientCircuitBrokenEventArgs e)
+        {
+            Console.WriteLine("CreatedClient_CircuitBreak");
+        }
+
+        private void CreatedClient_CircuitHalfOpen(object sender, BrokerClientCircuitHalfOpenEventArgs e)
+        {
+            Console.WriteLine("CreatedClient_CircuitHalfOpen");
+        }
+
+        private void CreatedClient_CircuitReset(object sender, BrokerClientCircuitResetEventArgs e)
+        {
+            Console.WriteLine("CreatedClient_CircuitReset");
+        }
+
+        #endregion Private Methods
     }
 }

@@ -13,26 +13,26 @@
 
 using System;
 
-namespace Distask.Distributors
+namespace Distask.TaskDispatchers
 {
     /// <summary>
     /// Represents the event data contained by the event which occurs when a new broker
     /// has registered to the distributor.
     /// </summary>
     /// <seealso cref="System.EventArgs" />
-    public sealed class BrokerRegisteredEventArgs : EventArgs
+    public sealed class BrokerClientRegisteredEventArgs : EventArgs
     {
 
         #region Internal Constructors
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="BrokerRegisteredEventArgs"/> class.
+        /// Initializes a new instance of the <see cref="BrokerClientRegisteredEventArgs"/> class.
         /// </summary>
         /// <param name="group">The group to which the broker belongs.</param>
         /// <param name="name">The name of the broker.</param>
         /// <param name="host">The host name of the machine on which the broker is running.</param>
         /// <param name="port">The port to which the broker listens and waits for the task execution requests.</param>
-        internal BrokerRegisteredEventArgs(string group, string name, string host, int port)
+        internal BrokerClientRegisteredEventArgs(string group, string name, string host, int port)
         {
             this.Group = group;
             this.Name = name;

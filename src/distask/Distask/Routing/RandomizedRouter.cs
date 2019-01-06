@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Distask.Brokers;
+using Distask.TaskDispatchers;
 
 namespace Distask.Routing
 {
@@ -10,13 +12,13 @@ namespace Distask.Routing
     {
         private static readonly Random rnd = new Random(DateTime.UtcNow.Millisecond);
 
-        public IBrokerClient GetRoutedClient(string group, IEnumerable<IBrokerClient> clients)
+        public Task<IBrokerClient> GetRoutedClientAsync(string group, IEnumerable<IBrokerClient> clients)
         {
             var numOfClients = clients.Count();
             if (numOfClients > 0)
             {
                 var index = rnd.Next(numOfClients);
-                return clients.ElementAt(index);
+                return Task.FromResult(clients.ElementAt(index));
             }
 
             return null;

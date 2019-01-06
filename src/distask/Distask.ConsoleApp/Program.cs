@@ -1,4 +1,4 @@
-﻿using Distask.Distributors;
+﻿using Distask.TaskDispatchers;
 using Distask.Routing;
 using System;
 using System.Threading;
@@ -10,9 +10,9 @@ namespace Distask.ConsoleApp
     {
         static void Main(string[] args)
         {
-            using (var distributor = new Distributor(new RandomizedRouter()))
+            using (var distributor = new TaskDispatcher(new RandomizedRouter()))
             {
-                distributor.BrokerRegistered += Distributor_BrokerRegistered;
+                distributor.BrokerClientRegistered += Distributor_BrokerRegistered;
                 var timer = new System.Timers.Timer
                 {
                     Interval = 1000
@@ -23,8 +23,8 @@ namespace Distask.ConsoleApp
                      var managedThreadId = Thread.CurrentThread.ManagedThreadId;
                      try
                      {
-                         var response = distributor.DistributeAsync(new RequestMessage("add", new[] { "2", "3" })).Result;
-                         if (response.Status == Status.Success)
+                         var response = distributor.DispatchAsync(new RequestMessage("add", new[] { "2", "3" })).Result;
+                         if (response.Status == ResponseStatus.Success)
                          {
                              Console.WriteLine($"Thread [{managedThreadId}] Result: {response.Result}");
                          }
@@ -41,12 +41,12 @@ namespace Distask.ConsoleApp
                 timer.Start();
                 Console.WriteLine("Master started, press ENTER to exit...");
                 Console.ReadLine();
-                distributor.BrokerRegistered -= Distributor_BrokerRegistered;
+                distributor.BrokerClientRegistered -= Distributor_BrokerRegistered;
                 timer.Stop();
             }
         }
 
-        private static void Distributor_BrokerRegistered(object sender, BrokerRegisteredEventArgs e)
+        private static void Distributor_BrokerRegistered(object sender, BrokerClientRegisteredEventArgs e)
         {
             Console.WriteLine($"New broker registered with the following information: {e}");
         }

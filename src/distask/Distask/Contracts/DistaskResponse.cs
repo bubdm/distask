@@ -1,4 +1,4 @@
-﻿using Distask.Distributors;
+﻿using Distask.TaskDispatchers;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -39,14 +39,14 @@ namespace Distask.Contracts
 
         public ResponseMessage ToResponseMessage()
         {
-            var status = Distributors.Status.Success;
+            var status = ResponseStatus.Success;
             switch (this.Status)
             {
                 case StatusCode.Error:
-                    status = Distributors.Status.Error;
+                    status = ResponseStatus.Error;
                     break;
                 case StatusCode.Warning:
-                    status = Distributors.Status.Warning;
+                    status = ResponseStatus.Warning;
                     break;
                 default: break;
             }

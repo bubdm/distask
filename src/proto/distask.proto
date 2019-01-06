@@ -28,7 +28,13 @@ message RegistrationRequest {
 
 message RegistrationResponse {
     StatusCode status = 1;
-    string errorMessage = 2;
+    string rejectMessage = 2;
+    enum RejectReason {
+        NONE = 0;
+        GENERAL = 1;
+        ALREADY_EXISTS = 2;
+    }
+    RejectReason reason = 3;
 };
 
 service DistaskService {

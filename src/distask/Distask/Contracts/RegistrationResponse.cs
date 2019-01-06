@@ -20,13 +20,14 @@ namespace Distask.Contracts
         /// <summary>
         /// Represents an error response of the registration request.
         /// </summary>
-        /// <param name="errorMessage">The error message.</param>
+        /// <param name="rejectMessage">The error message.</param>
         /// <returns>The <c>RegistrationResponse</c> which carries the error flag.</returns>
-        public static RegistrationResponse Error(string errorMessage) =>
+        public static RegistrationResponse Error(string rejectMessage) =>
             new RegistrationResponse
             {
                 Status = StatusCode.Error,
-                ErrorMessage = errorMessage
+                RejectMessage = rejectMessage,
+                Reason = Types.RejectReason.General
             };
 
         /// <summary>
@@ -36,19 +37,16 @@ namespace Distask.Contracts
         public static RegistrationResponse Success() =>
             new RegistrationResponse
             {
-                Status = StatusCode.Success
+                Status = StatusCode.Success,
+                Reason = Types.RejectReason.None
             };
 
-        /// <summary>
-        /// Represents a warning response of the registration request.
-        /// </summary>
-        /// <param name="errorMessage">The warning message.</param>
-        /// <returns>The <c>RegistrationResponse</c> which carries the warning flag.</returns>
-        public static RegistrationResponse Warning(string errorMessage) =>
+        public static RegistrationResponse AlreadyExists(string rejectMessage) =>
             new RegistrationResponse
             {
-                Status = StatusCode.Warning,
-                ErrorMessage = errorMessage
+                Status = StatusCode.Error,
+                RejectMessage = rejectMessage,
+                Reason = Types.RejectReason.AlreadyExists
             };
 
         #endregion Public Methods

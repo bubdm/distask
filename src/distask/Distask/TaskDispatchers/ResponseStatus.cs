@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Distask.Distributors
+namespace Distask.TaskDispatchers
 {
-    public enum Status
+    public enum ResponseStatus
     {
         Success = 0,
         Warning = 1,
