@@ -22,6 +22,10 @@ namespace Distask.TaskDispatchers
 
         int Port { get; }
 
+        bool IsAvailable { get; }
+
+        float HealthScore { get; }
+
         Task<DistaskResponse> ExecuteAsync(DistaskRequest request, CancellationToken cancellationToken = default(CancellationToken));
 
         event EventHandler<BrokerClientCircuitBrokenEventArgs> CircuitBroken;

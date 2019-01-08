@@ -33,6 +33,8 @@ namespace Distask.TaskDispatchers
         private readonly Policy policy;
         private readonly DistaskServiceClient wrappedClient;
         private bool disposedValue = false;
+        private long totalRequestCount = 0L;
+        private long totalUnavailableCount = 0L;
 
         #endregion Private Fields
 
@@ -46,11 +48,18 @@ namespace Distask.TaskDispatchers
             this.channel = new Channel(host, port, channelCredentials);
             this.wrappedClient = new DistaskServiceClient(channel);
             this.config = config;
-            this.policy = Policy.Handle<Exception>()
-                .CircuitBreakerAsync(
-                    config.BrokerClient.Resiliency.CircuitBreakOnExceptions,
-                    TimeSpan.FromMilliseconds(config.BrokerClient.Resiliency.CircuitBreakMilliseconds),
-                    this.OnCircuitBroken, this.OnCircuitReset, this.OnCircuitHalfOpen);
+            if (config.BrokerClient.Resiliency.Enabled)
+            {
+                this.policy = Policy.Handle<Exception>()
+                    .CircuitBreakerAsync(
+                        config.BrokerClient.Resiliency.CircuitBreakOnExceptions,
+                        TimeSpan.FromMilliseconds(config.BrokerClient.Resiliency.CircuitBreakMilliseconds),
+                        this.OnCircuitBroken, this.OnCircuitReset, this.OnCircuitHalfOpen);
+            }
+            else
+            {
+                this.policy = Policy.NoOpAsync();
+            }
         }
 
         #endregion Public Constructors
@@ -69,7 +78,6 @@ namespace Distask.TaskDispatchers
 
         public event EventHandler<BrokerClientCircuitBrokenEventArgs> CircuitBroken;
         public event EventHandler<BrokerClientCircuitHalfOpenEventArgs> CircuitHalfOpen;
-
         public event EventHandler<BrokerClientCircuitResetEventArgs> CircuitReset;
 
         #endregion Public Events
@@ -81,6 +89,10 @@ namespace Distask.TaskDispatchers
         public string Host { get; }
 
         public int Port { get; }
+
+        public bool IsAvailable => HealthScore > 90;
+
+        public float HealthScore => this.totalRequestCount == 0 ? 100 : (this.totalRequestCount - this.totalUnavailableCount) * 100L / this.totalRequestCount;
 
         #endregion Public Properties
 
@@ -110,7 +122,16 @@ namespace Distask.TaskDispatchers
         public async Task<DistaskResponse> ExecuteAsync(DistaskRequest request, CancellationToken cancellationToken = default(CancellationToken))
             => await policy.ExecuteAsync(async ct =>
             {
-                return await wrappedClient.ExecuteAsync(request, cancellationToken: ct);
+                try
+                {
+                    Interlocked.Increment(ref this.totalRequestCount);
+                    return await wrappedClient.ExecuteAsync(request, cancellationToken: ct);
+                }
+                catch (RpcException rpcEx) when (rpcEx.StatusCode == Grpc.Core.StatusCode.Unavailable)
+                {
+                    Interlocked.Increment(ref this.totalUnavailableCount);
+                    throw;
+                }
             }, cancellationToken);
 
         /// <summary>

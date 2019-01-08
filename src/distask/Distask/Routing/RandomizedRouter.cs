@@ -14,11 +14,13 @@ namespace Distask.Routing
 
         public Task<IBrokerClient> GetRoutedClientAsync(string group, IEnumerable<IBrokerClient> clients)
         {
-            var numOfClients = clients.Count();
+            var availableClients = clients.Where(c => c.IsAvailable);
+
+            var numOfClients = availableClients.Count();
             if (numOfClients > 0)
             {
                 var index = rnd.Next(numOfClients);
-                return Task.FromResult(clients.ElementAt(index));
+                return Task.FromResult(availableClients.ElementAt(index));
             }
 
             return null;

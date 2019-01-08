@@ -20,31 +20,31 @@ namespace Distask.TaskDispatchers
     /// Represents the error that occurs when a task is being distributed.
     /// </summary>
     /// <seealso cref="Distask.DistaskException" />
-    public class DistributionException : DistaskException
+    public class TaskDispatchException : DistaskException
     {
         #region Public Constructors
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DistributionException"/> class.
+        /// Initializes a new instance of the <see cref="TaskDispatchException"/> class.
         /// </summary>
-        public DistributionException()
+        public TaskDispatchException()
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DistributionException"/> class.
+        /// Initializes a new instance of the <see cref="TaskDispatchException"/> class.
         /// </summary>
         /// <param name="message">The message.</param>
-        public DistributionException(string message) : base(message)
+        public TaskDispatchException(string message) : base(message)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DistributionException"/> class.
+        /// Initializes a new instance of the <see cref="TaskDispatchException"/> class.
         /// </summary>
         /// <param name="message">The message.</param>
         /// <param name="innerException">The inner exception.</param>
-        public DistributionException(string message, Exception innerException) : base(message, innerException)
+        public TaskDispatchException(string message, Exception innerException) : base(message, innerException)
         {
         }
 
@@ -53,11 +53,11 @@ namespace Distask.TaskDispatchers
         #region Protected Constructors
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DistributionException"/> class.
+        /// Initializes a new instance of the <see cref="TaskDispatchException"/> class.
         /// </summary>
         /// <param name="info">The information.</param>
         /// <param name="context">The context.</param>
-        protected DistributionException(SerializationInfo info, StreamingContext context)
+        protected TaskDispatchException(SerializationInfo info, StreamingContext context)
             : base(info, context) { }
 
         #endregion Protected Constructors

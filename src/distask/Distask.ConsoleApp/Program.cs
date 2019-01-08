@@ -15,7 +15,7 @@ namespace Distask.ConsoleApp
                 distributor.BrokerClientRegistered += Distributor_BrokerRegistered;
                 var timer = new System.Timers.Timer
                 {
-                    Interval = 1000
+                    Interval = 300
                 };
 
                 timer.Elapsed += (s, e) =>

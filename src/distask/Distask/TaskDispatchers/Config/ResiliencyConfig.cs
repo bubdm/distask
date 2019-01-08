@@ -9,11 +9,14 @@ namespace Distask.TaskDispatchers.Config
         public static readonly ResiliencyConfig DefaultResiliencyConfig = new ResiliencyConfig
         {
             CircuitBreakOnExceptions = 3,
-            CircuitBreakMilliseconds = 5000
+            CircuitBreakMilliseconds = 5000,
+            Enabled = true
         };
 
         public int CircuitBreakOnExceptions { get; set; }
 
         public int CircuitBreakMilliseconds { get; set; }
+
+        public bool Enabled { get; set; }
     }
 }

@@ -23,6 +23,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using static Distask.Contracts.DistaskRegistrationService;
+using Polly;
+using Polly.Retry;
 
 namespace Distask.TaskDispatchers
 {
@@ -34,6 +36,7 @@ namespace Distask.TaskDispatchers
         private readonly ConcurrentDictionary<string, ConcurrentBag<IBrokerClient>> brokerClients = new ConcurrentDictionary<string, ConcurrentBag<IBrokerClient>>();
         private readonly TaskDispatcherConfig config;
         private readonly Server registrationServer;
+        private readonly RetryPolicy<DistaskResponse> retryPolicy;
         private readonly IRouter router;
         private bool disposedValue = false;
 
@@ -61,6 +64,11 @@ namespace Distask.TaskDispatchers
         {
             this.config = config;
             this.router = router;
+
+            retryPolicy = Policy.Handle<Exception>()
+                .OrResult<DistaskResponse>(r => r.Status != Contracts.StatusCode.Success)
+                .RetryAsync(5, new Action<DelegateResult<DistaskResponse>, int>(this.OnRetry));
+
             this.registrationServer = new Server
             {
                 Services = { BindService(this) },
@@ -90,12 +98,6 @@ namespace Distask.TaskDispatchers
 
         #region Public Methods
 
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
         public async Task<ResponseMessage> DispatchAsync(RequestMessage requestMessage,
                     string group = Utils.Constants.DefaultGroupName,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -103,28 +105,37 @@ namespace Distask.TaskDispatchers
             if (brokerClients.TryGetValue(group, out var clients) &&
                 clients.Count > 0)
             {
-                var parameters = new RepeatedField<string> { requestMessage.Parameters };
-                var distaskRequest = new DistaskRequest { TaskName = requestMessage.TaskName };
-                distaskRequest.Parameters.AddRange(requestMessage.Parameters);
-                var client = await router.GetRoutedClientAsync(group, clients);
-                if (client != null)
+                try
                 {
-                    try
+                    var result = await this.retryPolicy.ExecuteAsync(async (ct) =>
                     {
-                        Console.WriteLine(client.ToString());
-                        var distaskResponse = await client.ExecuteAsync(distaskRequest, cancellationToken);
-                        return distaskResponse.ToResponseMessage();
-                    }
-                    catch (Exception ex)
-                    {
-                        // log
-                    }
-                }
+                        var parameters = new RepeatedField<string> { requestMessage.Parameters };
+                        var distaskRequest = new DistaskRequest { TaskName = requestMessage.TaskName };
+                        distaskRequest.Parameters.AddRange(requestMessage.Parameters);
+                        var client = await router.GetRoutedClientAsync(group, clients);
+                        if (client != null)
+                        {
+                            return await client.ExecuteAsync(distaskRequest, cancellationToken);
+                        }
 
-                throw new DistributionException("Failed to distribute the task, the routed client was unable to respond in a timely fashion.");
+                        throw new TaskDispatchException("No broker available to serve the request.");
+                    }, cancellationToken);
+
+                    return result.ToResponseMessage();
+                }
+                catch (Exception ex)
+                {
+                    throw new TaskDispatchException("Failed to distribute the task, the routed client was unable to respond in a timely fashion.", ex);
+                }
             }
 
-            throw new DistributionException($"No client has been registered to group '{group}' for serving the request.");
+            throw new TaskDispatchException($"No client has been registered to group '{group}' for serving the request.");
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         public override Task<RegistrationResponse> Register(RegistrationRequest request, ServerCallContext context)
@@ -200,15 +211,6 @@ namespace Distask.TaskDispatchers
             return createdClient;
         }
 
-        private void DisposeBrokerClient(IBrokerClient brokerClient)
-        {
-            brokerClient.CircuitBroken -= this.CreatedClient_CircuitBroken;
-            brokerClient.CircuitHalfOpen -= this.CreatedClient_CircuitHalfOpen;
-            brokerClient.CircuitReset -= this.CreatedClient_CircuitReset;
-
-            brokerClient.Dispose();
-        }
-
         private void CreatedClient_CircuitBroken(object sender, BrokerClientCircuitBrokenEventArgs e)
         {
             Console.WriteLine("CreatedClient_CircuitBreak");
@@ -222,6 +224,20 @@ namespace Distask.TaskDispatchers
         private void CreatedClient_CircuitReset(object sender, BrokerClientCircuitResetEventArgs e)
         {
             Console.WriteLine("CreatedClient_CircuitReset");
+        }
+
+        private void DisposeBrokerClient(IBrokerClient brokerClient)
+        {
+            brokerClient.CircuitBroken -= this.CreatedClient_CircuitBroken;
+            brokerClient.CircuitHalfOpen -= this.CreatedClient_CircuitHalfOpen;
+            brokerClient.CircuitReset -= this.CreatedClient_CircuitReset;
+
+            brokerClient.Dispose();
+        }
+
+        private void OnRetry(DelegateResult<DistaskResponse> delegateResult, int count)
+        {
+
         }
 
         #endregion Private Methods

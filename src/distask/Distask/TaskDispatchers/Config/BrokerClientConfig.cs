@@ -11,8 +11,6 @@ namespace Distask.TaskDispatchers.Config
             Resiliency = ResiliencyConfig.DefaultResiliencyConfig
         };
 
-
-
         public ResiliencyConfig Resiliency { get; set; }
     }
 }
