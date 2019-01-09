@@ -162,7 +162,7 @@ namespace Distask.TaskDispatchers.Client
 
         public override string ToString()
         {
-            return $"ClientName: {Name}, ClientHost: {Host}, ClientPort: {Port}";
+            return $"ClientName: {Name}, ClientHost: {Host}, ClientPort: {Port}, HealthLevel: {HealthLevel}";
         }
 
         #endregion Public Methods

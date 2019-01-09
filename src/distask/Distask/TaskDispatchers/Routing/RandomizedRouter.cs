@@ -7,16 +7,14 @@ using Distask.Brokers;
 using Distask.TaskDispatchers;
 using Distask.TaskDispatchers.Client;
 
-namespace Distask.Routing
+namespace Distask.TaskDispatchers.Routing
 {
-    public sealed class RandomizedRouter : IRouter
+    public sealed class RandomizedRouter : Router
     {
         private static readonly Random rnd = new Random(DateTime.UtcNow.Millisecond);
 
-        public Task<IBrokerClient> GetRoutedClientAsync(string group, IEnumerable<IBrokerClient> clients)
+        protected override Task<IBrokerClient> GetRoutedClientCoreAsync(string group, IEnumerable<IBrokerClient> availableClients)
         {
-            var availableClients = clients; //.Where(c => c.IsAvailable);
-
             var numOfClients = availableClients.Count();
             if (numOfClients > 0)
             {

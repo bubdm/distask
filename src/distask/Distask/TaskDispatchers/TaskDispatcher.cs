@@ -14,7 +14,6 @@
 using Distask.Brokers;
 using Distask.Contracts;
 using Distask.TaskDispatchers.Config;
-using Distask.Routing;
 using Google.Protobuf.Collections;
 using Grpc.Core;
 using System;
@@ -25,6 +24,8 @@ using System.Threading.Tasks;
 using static Distask.Contracts.DistaskRegistrationService;
 using Polly;
 using Polly.Retry;
+using Distask.TaskDispatchers.AvailabilityCheckers;
+using Distask.TaskDispatchers.Routing;
 using Distask.TaskDispatchers.Client;
 
 namespace Distask.TaskDispatchers
@@ -34,6 +35,7 @@ namespace Distask.TaskDispatchers
 
         #region Private Fields
 
+        private readonly IAvailabilityChecker availabilityChecker;
         private readonly ConcurrentDictionary<string, ConcurrentBag<IBrokerClient>> brokerClients = new ConcurrentDictionary<string, ConcurrentBag<IBrokerClient>>();
         private readonly TaskDispatcherConfig config;
         private readonly Server registrationServer;
@@ -46,25 +48,26 @@ namespace Distask.TaskDispatchers
         #region Public Constructors
 
         public TaskDispatcher()
-            : this(TaskDispatcherConfig.AnyAddressDefaultPort, new FirstOccurrenceRouter())
+            : this(TaskDispatcherConfig.AnyAddressDefaultPort, new FirstOccurrenceRouter(), new HealthLevelChecker(HealthLevel.Excellent))
         { }
 
         public TaskDispatcher(int port)
-            : this(TaskDispatcherConfig.AnyAddress(port), new FirstOccurrenceRouter())
+            : this(TaskDispatcherConfig.AnyAddress(port), new FirstOccurrenceRouter(), new HealthLevelChecker(HealthLevel.Excellent))
         { }
 
-        public TaskDispatcher(IRouter router)
-            : this(TaskDispatcherConfig.AnyAddressDefaultPort, router)
+        public TaskDispatcher(IRouter router, IAvailabilityChecker availabilityChecker)
+            : this(TaskDispatcherConfig.AnyAddressDefaultPort, router, availabilityChecker)
         { }
 
-        public TaskDispatcher(int port, IRouter router)
-            : this(TaskDispatcherConfig.AnyAddress(port), router)
+        public TaskDispatcher(int port, IRouter router, IAvailabilityChecker availabilityChecker)
+            : this(TaskDispatcherConfig.AnyAddress(port), router, availabilityChecker)
         { }
 
-        public TaskDispatcher(TaskDispatcherConfig config, IRouter router)
+        public TaskDispatcher(TaskDispatcherConfig config, IRouter router, IAvailabilityChecker availabilityChecker)
         {
             this.config = config;
             this.router = router;
+            this.availabilityChecker = availabilityChecker;
 
             retryPolicy = Policy.Handle<Exception>()
                 .OrResult<DistaskResponse>(r => r.Status != Contracts.StatusCode.Success)
@@ -113,9 +116,10 @@ namespace Distask.TaskDispatchers
                         var parameters = new RepeatedField<string> { requestMessage.Parameters };
                         var distaskRequest = new DistaskRequest { TaskName = requestMessage.TaskName };
                         distaskRequest.Parameters.AddRange(requestMessage.Parameters);
-                        var client = await router.GetRoutedClientAsync(group, clients);
+                        var client = await router.GetRoutedClientAsync(group, clients, this.availabilityChecker);
                         if (client != null)
                         {
+                            Console.WriteLine(client);
                             return await client.ExecuteAsync(distaskRequest, cancellationToken);
                         }
 
@@ -124,13 +128,17 @@ namespace Distask.TaskDispatchers
 
                     return result.ToResponseMessage();
                 }
+                catch (TaskDispatchException)
+                {
+                    throw;
+                }
                 catch (Exception ex)
                 {
-                    throw new TaskDispatchException("Failed to distribute the task, the routed client was unable to respond in a timely fashion.", ex);
+                    throw new TaskDispatchException("Failed to distribute the task, please refer to the inner exception for details.", ex);
                 }
             }
 
-            throw new TaskDispatchException($"No client has been registered to group '{group}' for serving the request.");
+            throw new TaskDispatchException("No broker available to serve the request.");
         }
 
         public void Dispose()
@@ -238,9 +246,10 @@ namespace Distask.TaskDispatchers
 
         private void OnRetry(DelegateResult<DistaskResponse> delegateResult, int count)
         {
-
+            Console.WriteLine("Retrying...");
         }
 
         #endregion Private Methods
+
     }
 }
