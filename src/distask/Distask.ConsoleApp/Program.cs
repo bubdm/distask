@@ -3,6 +3,7 @@ using Distask.Routing;
 using System;
 using System.Threading;
 using System.Timers;
+using Distask.TaskDispatchers.Client;
 
 namespace Distask.ConsoleApp
 {

@@ -25,6 +25,7 @@ using System.Threading.Tasks;
 using static Distask.Contracts.DistaskRegistrationService;
 using Polly;
 using Polly.Retry;
+using Distask.TaskDispatchers.Client;
 
 namespace Distask.TaskDispatchers
 {

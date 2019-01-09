@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using static Distask.Contracts.DistaskService;
 
-namespace Distask.TaskDispatchers
+namespace Distask.TaskDispatchers.Client
 {
     public interface IBrokerClient : IDisposable
     {
@@ -22,9 +22,12 @@ namespace Distask.TaskDispatchers
 
         int Port { get; }
 
-        bool IsAvailable { get; }
+        HealthLevel HealthLevel { get; }
 
-        float HealthScore { get; }
+
+
+        IEnumerable<TException> GetExceptions<TException>(TimeSpan? period = null)
+            where TException : Exception;
 
         Task<DistaskResponse> ExecuteAsync(DistaskRequest request, CancellationToken cancellationToken = default(CancellationToken));
 

@@ -13,7 +13,7 @@
 
 using System;
 
-namespace Distask.TaskDispatchers
+namespace Distask.TaskDispatchers.Client
 {
     /// <summary>
     /// Represents the event data contained by the event which occurs when a new broker

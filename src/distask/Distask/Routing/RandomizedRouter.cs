@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Distask.Brokers;
 using Distask.TaskDispatchers;
+using Distask.TaskDispatchers.Client;
 
 namespace Distask.Routing
 {
@@ -14,7 +15,7 @@ namespace Distask.Routing
 
         public Task<IBrokerClient> GetRoutedClientAsync(string group, IEnumerable<IBrokerClient> clients)
         {
-            var availableClients = clients.Where(c => c.IsAvailable);
+            var availableClients = clients; //.Where(c => c.IsAvailable);
 
             var numOfClients = availableClients.Count();
             if (numOfClients > 0)

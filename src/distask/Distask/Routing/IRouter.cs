@@ -1,5 +1,6 @@
 ﻿using Distask.Brokers;
 using Distask.TaskDispatchers;
+using Distask.TaskDispatchers.Client;
 using System;
 using System.Collections.Generic;
 using System.Text;

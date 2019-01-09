@@ -15,13 +15,15 @@ using Distask.Contracts;
 using Distask.TaskDispatchers.Config;
 using Grpc.Core;
 using Polly;
+using System.Linq;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using static Distask.Contracts.DistaskService;
 
-namespace Distask.TaskDispatchers
+namespace Distask.TaskDispatchers.Client
 {
     public sealed class BrokerClient : IBrokerClient
     {
@@ -32,9 +34,9 @@ namespace Distask.TaskDispatchers
         private readonly TaskDispatcherConfig config;
         private readonly Policy policy;
         private readonly DistaskServiceClient wrappedClient;
+        private readonly ConcurrentBag<ExceptionLogEntry> exceptionLogEntries = new ConcurrentBag<ExceptionLogEntry>();
         private bool disposedValue = false;
         private long totalRequestCount = 0L;
-        private long totalUnavailableCount = 0L;
 
         #endregion Private Fields
 
@@ -90,9 +92,18 @@ namespace Distask.TaskDispatchers
 
         public int Port { get; }
 
-        public bool IsAvailable => HealthScore > 90;
-
-        public float HealthScore => this.totalRequestCount == 0 ? 100 : (this.totalRequestCount - this.totalUnavailableCount) * 100L / this.totalRequestCount;
+        public HealthLevel HealthLevel
+        {
+            get
+            {
+                var score = this.totalRequestCount == 0 ?
+                    100 :
+                    (this.totalRequestCount - this.exceptionLogEntries.Count) * 100L / this.totalRequestCount;
+                var numbersPerBucket = 100 / (Enum.GetNames(typeof(HealthLevel)).Length - 1);
+                var bucketNum = score / numbersPerBucket + 1;
+                return (HealthLevel)bucketNum;
+            }
+        }
 
         #endregion Public Properties
 
@@ -127,9 +138,9 @@ namespace Distask.TaskDispatchers
                     Interlocked.Increment(ref this.totalRequestCount);
                     return await wrappedClient.ExecuteAsync(request, cancellationToken: ct);
                 }
-                catch (RpcException rpcEx) when (rpcEx.StatusCode == Grpc.Core.StatusCode.Unavailable)
+                catch (Exception ex)
                 {
-                    Interlocked.Increment(ref this.totalUnavailableCount);
+                    this.exceptionLogEntries.Add(new ExceptionLogEntry(ex));
                     throw;
                 }
             }, cancellationToken);
@@ -176,6 +187,24 @@ namespace Distask.TaskDispatchers
         private void OnCircuitHalfOpen() => CircuitHalfOpen?.Invoke(this, new BrokerClientCircuitHalfOpenEventArgs());
 
         private void OnCircuitReset() => CircuitReset?.Invoke(this, new BrokerClientCircuitResetEventArgs());
+
+        public IEnumerable<TException> GetExceptions<TException>(TimeSpan? period = null)
+            where TException : Exception
+        {
+            if (period == null)
+            {
+                return from entry in this.exceptionLogEntries
+                       let exceptionType = entry.Exception.GetType()
+                       where exceptionType == typeof(TException) || exceptionType.IsSubclassOf(typeof(TException))
+                       select (entry.Exception as TException);
+            }
+
+            return from entry in this.exceptionLogEntries
+                   let exceptionType = entry.Exception.GetType()
+                   where exceptionType == typeof(TException) || exceptionType.IsSubclassOf(typeof(TException)) &&
+                   (DateTime.UtcNow - entry.OccurredOn <= period)
+                   select (entry.Exception as TException);
+        }
 
         #endregion Private Methods
     }
