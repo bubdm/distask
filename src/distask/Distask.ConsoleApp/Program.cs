@@ -5,6 +5,10 @@ using System.Timers;
 using Distask.TaskDispatchers.AvailabilityCheckers;
 using Distask.TaskDispatchers.Routing;
 using Distask.TaskDispatchers.Client;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging.Console;
 
 namespace Distask.ConsoleApp
 {
@@ -14,7 +18,22 @@ namespace Distask.ConsoleApp
 
         static void Main(string[] args)
         {
-            using (var distributor = new TaskDispatcher(new RandomizedRouter(), new HealthLevelChecker(HealthLevel.Excellent)))
+            var configurationBuilder = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json");
+            var configuration = configurationBuilder.Build();
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddLogging(builder =>
+            {
+                builder.AddConfiguration(configuration.GetSection("Logging"));
+                builder.AddConsole();
+            });
+
+            serviceCollection.AddScoped<ITaskDispatcher>(sp => new TaskDispatcher(sp.GetService<ILogger<TaskDispatcher>>()));
+            var serviceProvider = serviceCollection.BuildServiceProvider();
+            var distributor = serviceProvider.GetService<ITaskDispatcher>();
+
+            using (distributor)
             {
                 distributor.BrokerClientRegistered += Distributor_BrokerRegistered;
 

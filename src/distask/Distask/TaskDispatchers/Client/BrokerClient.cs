@@ -34,9 +34,8 @@ namespace Distask.TaskDispatchers.Client
         private readonly TaskDispatcherConfig config;
         private readonly Policy policy;
         private readonly DistaskServiceClient wrappedClient;
-        private readonly ConcurrentBag<ExceptionLogEntry> exceptionLogEntries = new ConcurrentBag<ExceptionLogEntry>();
+        private readonly Index index = new Index();
         private bool disposedValue = false;
-        private long totalRequestCount = 0L;
 
         #endregion Private Fields
 
@@ -92,18 +91,9 @@ namespace Distask.TaskDispatchers.Client
 
         public int Port { get; }
 
-        public HealthLevel HealthLevel
-        {
-            get
-            {
-                var score = this.totalRequestCount == 0 ?
-                    100 :
-                    (this.totalRequestCount - this.exceptionLogEntries.Count) * 100L / this.totalRequestCount;
-                var numbersPerBucket = 100 / (Enum.GetNames(typeof(HealthLevel)).Length - 1);
-                var bucketNum = score / numbersPerBucket + 1;
-                return (HealthLevel)bucketNum;
-            }
-        }
+
+
+        public Index Index => index;
 
         #endregion Public Properties
 
@@ -131,19 +121,23 @@ namespace Distask.TaskDispatchers.Client
         }
 
         public async Task<DistaskResponse> ExecuteAsync(DistaskRequest request, CancellationToken cancellationToken = default(CancellationToken))
-            => await policy.ExecuteAsync(async ct =>
+        {
+            this.index.IncreaseTotalRequests();
+            try
             {
-                try
+                return await policy.ExecuteAsync(async ct =>
                 {
-                    Interlocked.Increment(ref this.totalRequestCount);
+                    this.index.IncreaseForwardedRequests();
                     return await wrappedClient.ExecuteAsync(request, cancellationToken: ct);
-                }
-                catch (Exception ex)
-                {
-                    this.exceptionLogEntries.Add(new ExceptionLogEntry(ex));
-                    throw;
-                }
-            }, cancellationToken);
+                }, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                this.index.LastException = ex;
+                this.index.AddException(ex);
+                throw;
+            }
+        }
 
         /// <summary>
         /// Returns a hash code for this instance.
@@ -162,7 +156,7 @@ namespace Distask.TaskDispatchers.Client
 
         public override string ToString()
         {
-            return $"ClientName: {Name}, ClientHost: {Host}, ClientPort: {Port}, HealthLevel: {HealthLevel}";
+            return $"ClientName: {Name}, ClientHost: {Host}, ClientPort: {Port}, HealthLevel: {this.index.HealthLevel}, TotalRequests: {this.index.TotalRequests}, TotalExceptions: {this.index.TotalExceptions}";
         }
 
         #endregion Public Methods
@@ -187,24 +181,6 @@ namespace Distask.TaskDispatchers.Client
         private void OnCircuitHalfOpen() => CircuitHalfOpen?.Invoke(this, new BrokerClientCircuitHalfOpenEventArgs());
 
         private void OnCircuitReset() => CircuitReset?.Invoke(this, new BrokerClientCircuitResetEventArgs());
-
-        public IEnumerable<TException> GetExceptions<TException>(TimeSpan? period = null)
-            where TException : Exception
-        {
-            if (period == null)
-            {
-                return from entry in this.exceptionLogEntries
-                       let exceptionType = entry.Exception.GetType()
-                       where exceptionType == typeof(TException) || exceptionType.IsSubclassOf(typeof(TException))
-                       select (entry.Exception as TException);
-            }
-
-            return from entry in this.exceptionLogEntries
-                   let exceptionType = entry.Exception.GetType()
-                   where exceptionType == typeof(TException) || exceptionType.IsSubclassOf(typeof(TException)) &&
-                   (DateTime.UtcNow - entry.OccurredOn <= period)
-                   select (entry.Exception as TException);
-        }
 
         #endregion Private Methods
     }

@@ -27,6 +27,7 @@ using Polly.Retry;
 using Distask.TaskDispatchers.AvailabilityCheckers;
 using Distask.TaskDispatchers.Routing;
 using Distask.TaskDispatchers.Client;
+using Microsoft.Extensions.Logging;
 
 namespace Distask.TaskDispatchers
 {
@@ -41,6 +42,8 @@ namespace Distask.TaskDispatchers
         private readonly Server registrationServer;
         private readonly RetryPolicy<DistaskResponse> retryPolicy;
         private readonly IRouter router;
+        private readonly ILogger logger;
+
         private bool disposedValue = false;
 
         #endregion Private Fields
@@ -48,24 +51,38 @@ namespace Distask.TaskDispatchers
         #region Public Constructors
 
         public TaskDispatcher()
-            : this(TaskDispatcherConfig.AnyAddressDefaultPort, new FirstOccurrenceRouter(), new HealthLevelChecker(HealthLevel.Excellent))
+            : this(TaskDispatcherConfig.AnyAddressDefaultPort, 
+                  new NopLogger<TaskDispatcher>(), 
+                  new RandomizedRouter(), 
+                  new HealthLevelChecker(HealthLevel.Excellent))
         { }
 
         public TaskDispatcher(int port)
-            : this(TaskDispatcherConfig.AnyAddress(port), new FirstOccurrenceRouter(), new HealthLevelChecker(HealthLevel.Excellent))
+            : this(TaskDispatcherConfig.AnyAddress(port), 
+                  new NopLogger<TaskDispatcher>(), 
+                  new RandomizedRouter(), 
+                  new HealthLevelChecker(HealthLevel.Excellent))
         { }
 
-        public TaskDispatcher(IRouter router, IAvailabilityChecker availabilityChecker)
-            : this(TaskDispatcherConfig.AnyAddressDefaultPort, router, availabilityChecker)
+        public TaskDispatcher(ILogger<TaskDispatcher> logger)
+            : this(TaskDispatcherConfig.AnyAddressDefaultPort,
+                  logger,
+                  new RandomizedRouter(),
+                  new HealthLevelChecker(HealthLevel.Excellent))
         { }
 
-        public TaskDispatcher(int port, IRouter router, IAvailabilityChecker availabilityChecker)
-            : this(TaskDispatcherConfig.AnyAddress(port), router, availabilityChecker)
+        public TaskDispatcher(ILogger<TaskDispatcher> logger, IRouter router, IAvailabilityChecker availabilityChecker)
+            : this(TaskDispatcherConfig.AnyAddressDefaultPort, logger, router, availabilityChecker)
         { }
 
-        public TaskDispatcher(TaskDispatcherConfig config, IRouter router, IAvailabilityChecker availabilityChecker)
+        public TaskDispatcher(int port, ILogger<TaskDispatcher> logger, IRouter router,  IAvailabilityChecker availabilityChecker)
+            : this(TaskDispatcherConfig.AnyAddress(port), logger, router, availabilityChecker)
+        { }
+
+        public TaskDispatcher(TaskDispatcherConfig config, ILogger<TaskDispatcher> logger, IRouter router, IAvailabilityChecker availabilityChecker)
         {
             this.config = config;
+            this.logger = logger;
             this.router = router;
             this.availabilityChecker = availabilityChecker;
 
@@ -80,6 +97,7 @@ namespace Distask.TaskDispatchers
             };
 
             this.registrationServer.Start();
+            logger.LogInformation("Registration service started successfully.");
         }
 
         #endregion Public Constructors
@@ -103,10 +121,10 @@ namespace Distask.TaskDispatchers
         #region Public Methods
 
         public async Task<ResponseMessage> DispatchAsync(RequestMessage requestMessage,
-                    string group = Utils.Constants.DefaultGroupName,
+                    string group = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (brokerClients.TryGetValue(group, out var clients) &&
+            if (brokerClients.TryGetValue(group ?? Utils.Constants.DefaultGroupName, out var clients) &&
                 clients.Count > 0)
             {
                 try
@@ -119,7 +137,6 @@ namespace Distask.TaskDispatchers
                         var client = await router.GetRoutedClientAsync(group, clients, this.availabilityChecker);
                         if (client != null)
                         {
-                            Console.WriteLine(client);
                             return await client.ExecuteAsync(distaskRequest, cancellationToken);
                         }
 
@@ -222,17 +239,17 @@ namespace Distask.TaskDispatchers
 
         private void CreatedClient_CircuitBroken(object sender, BrokerClientCircuitBrokenEventArgs e)
         {
-            Console.WriteLine("CreatedClient_CircuitBreak");
+            
         }
 
         private void CreatedClient_CircuitHalfOpen(object sender, BrokerClientCircuitHalfOpenEventArgs e)
         {
-            Console.WriteLine("CreatedClient_CircuitHalfOpen");
+            
         }
 
         private void CreatedClient_CircuitReset(object sender, BrokerClientCircuitResetEventArgs e)
         {
-            Console.WriteLine("CreatedClient_CircuitReset");
+            
         }
 
         private void DisposeBrokerClient(IBrokerClient brokerClient)
@@ -246,7 +263,7 @@ namespace Distask.TaskDispatchers
 
         private void OnRetry(DelegateResult<DistaskResponse> delegateResult, int count)
         {
-            Console.WriteLine("Retrying...");
+            
         }
 
         #endregion Private Methods

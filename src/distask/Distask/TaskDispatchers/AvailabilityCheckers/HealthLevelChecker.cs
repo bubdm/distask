@@ -15,6 +15,6 @@ namespace Distask.TaskDispatchers.AvailabilityCheckers
             this.minLevel = minLevel;
         }
 
-        public Task<bool> IsAvailableAsync(IBrokerClient client) => Task.FromResult(client.HealthLevel >= minLevel);
+        public Task<bool> IsAvailableAsync(IBrokerClient client) => Task.FromResult(client.Index.HealthLevel >= minLevel);
     }
 }

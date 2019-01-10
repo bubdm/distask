@@ -16,13 +16,12 @@ namespace Distask.TaskDispatchers.Routing
         protected override Task<IBrokerClient> GetRoutedClientCoreAsync(string group, IEnumerable<IBrokerClient> availableClients)
         {
             var numOfClients = availableClients.Count();
-            if (numOfClients > 0)
+            if (numOfClients == 0)
             {
-                var index = rnd.Next(numOfClients);
-                return Task.FromResult(availableClients.ElementAt(index));
+                return null;
             }
 
-            return null;
+            return Task.FromResult(numOfClients == 1 ? availableClients.First() : availableClients.ElementAt(rnd.Next(numOfClients)));
         }
     }
 }

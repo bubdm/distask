@@ -22,12 +22,7 @@ namespace Distask.TaskDispatchers.Client
 
         int Port { get; }
 
-        HealthLevel HealthLevel { get; }
-
-
-
-        IEnumerable<TException> GetExceptions<TException>(TimeSpan? period = null)
-            where TException : Exception;
+        Index Index { get; }
 
         Task<DistaskResponse> ExecuteAsync(DistaskRequest request, CancellationToken cancellationToken = default(CancellationToken));
 
