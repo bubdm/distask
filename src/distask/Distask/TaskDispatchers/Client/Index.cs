@@ -27,6 +27,8 @@ namespace Distask.TaskDispatchers.Client
     {
         private long totalRequests = 0L;
         private long forwardedRequests = 0L;
+        private long lastRequestTimeData;
+        private long lastSuccessRequestTimeData;
 
         private readonly ConcurrentBag<ExceptionLogEntry> exceptionLogEntries = new ConcurrentBag<ExceptionLogEntry>();
 
@@ -43,15 +45,35 @@ namespace Distask.TaskDispatchers.Client
 
         public Exception LastException { get; internal set; }
 
-        internal void IncreaseTotalRequests()
+        public DateTime LastRequestTime
         {
-            Interlocked.Increment(ref this.totalRequests);
+            get
+            {
+                var data = Interlocked.CompareExchange(ref this.lastRequestTimeData, 0, 0);
+                return DateTime.FromBinary(data);
+            }
+            internal set
+            {
+                Interlocked.Exchange(ref this.lastRequestTimeData, value.ToBinary());
+            }
         }
 
-        internal void IncreaseForwardedRequests()
+        public DateTime LastSuccessRequestTime
         {
-            Interlocked.Increment(ref this.forwardedRequests);
+            get
+            {
+                var data = Interlocked.CompareExchange(ref this.lastSuccessRequestTimeData, 0, 0);
+                return DateTime.FromBinary(data);
+            }
+            internal set
+            {
+                Interlocked.Exchange(ref this.lastSuccessRequestTimeData, value.ToBinary());
+            }
         }
+
+        internal void IncreaseTotalRequests() => Interlocked.Increment(ref this.totalRequests);
+
+        internal void IncreaseForwardedRequests() => Interlocked.Increment(ref this.forwardedRequests);
 
         public HealthLevel HealthLevel
         {
@@ -74,16 +96,18 @@ namespace Distask.TaskDispatchers.Client
             if (period == null)
             {
                 return from entry in this.exceptionLogEntries
+                             let extType = entry.Exception.GetType()
+                             where extType == exceptionType || extType.IsSubclassOf(exceptionType)
+                             select entry.Exception;
+            }
+            else
+            {
+                return from entry in this.exceptionLogEntries
                        let extType = entry.Exception.GetType()
-                       where extType == exceptionType || extType.IsSubclassOf(exceptionType)
+                       where (extType == exceptionType || extType.IsSubclassOf(exceptionType)) &&
+                       (DateTime.UtcNow - entry.OccurredOn <= period)
                        select entry.Exception;
             }
-
-            return from entry in this.exceptionLogEntries
-                   let extType = entry.Exception.GetType()
-                   where extType == exceptionType || exceptionType.IsSubclassOf(exceptionType) &&
-                   (DateTime.UtcNow - entry.OccurredOn <= period)
-                   select entry.Exception;
         }
     }
 }

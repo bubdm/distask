@@ -34,7 +34,6 @@ namespace Distask.TaskDispatchers.Client
         private readonly TaskDispatcherConfig config;
         private readonly Policy policy;
         private readonly DistaskServiceClient wrappedClient;
-        private readonly Index index = new Index();
         private bool disposedValue = false;
 
         #endregion Private Fields
@@ -85,15 +84,10 @@ namespace Distask.TaskDispatchers.Client
 
         #region Public Properties
 
-        public string Name { get; }
-
         public string Host { get; }
-
+        public Index Index { get; } = new Index();
+        public string Name { get; }
         public int Port { get; }
-
-
-
-        public Index Index => index;
 
         #endregion Public Properties
 
@@ -122,19 +116,22 @@ namespace Distask.TaskDispatchers.Client
 
         public async Task<DistaskResponse> ExecuteAsync(DistaskRequest request, CancellationToken cancellationToken = default(CancellationToken))
         {
-            this.index.IncreaseTotalRequests();
+            this.Index.IncreaseTotalRequests();
+            this.Index.LastRequestTime = DateTime.UtcNow;
             try
             {
                 return await policy.ExecuteAsync(async ct =>
                 {
-                    this.index.IncreaseForwardedRequests();
-                    return await wrappedClient.ExecuteAsync(request, cancellationToken: ct);
+                    this.Index.IncreaseForwardedRequests();
+                    var result = await wrappedClient.ExecuteAsync(request, cancellationToken: ct);
+                    this.Index.LastSuccessRequestTime = DateTime.UtcNow;
+                    return result;
                 }, cancellationToken);
             }
             catch (Exception ex)
             {
-                this.index.LastException = ex;
-                this.index.AddException(ex);
+                this.Index.LastException = ex;
+                this.Index.AddException(ex);
                 throw;
             }
         }
@@ -156,7 +153,7 @@ namespace Distask.TaskDispatchers.Client
 
         public override string ToString()
         {
-            return $"ClientName: {Name}, ClientHost: {Host}, ClientPort: {Port}, HealthLevel: {this.index.HealthLevel}, TotalRequests: {this.index.TotalRequests}, TotalExceptions: {this.index.TotalExceptions}";
+            return $"ClientName: {Name}, ClientHost: {Host}, ClientPort: {Port}, HealthLevel: {this.Index.HealthLevel}, TotalRequests: {this.Index.TotalRequests}, TotalExceptions: {this.Index.TotalExceptions}";
         }
 
         #endregion Public Methods
@@ -183,5 +180,6 @@ namespace Distask.TaskDispatchers.Client
         private void OnCircuitReset() => CircuitReset?.Invoke(this, new BrokerClientCircuitResetEventArgs());
 
         #endregion Private Methods
+
     }
 }

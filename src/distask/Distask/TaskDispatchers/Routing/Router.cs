@@ -5,21 +5,20 @@ using System.Text;
 using System.Threading.Tasks;
 using Distask.TaskDispatchers.AvailabilityCheckers;
 using Distask.TaskDispatchers.Client;
+using Microsoft.Extensions.Logging;
 
 namespace Distask.TaskDispatchers.Routing
 {
     public abstract class Router : IRouter
     {
+        protected readonly ILogger logger;
+
+        protected Router(ILogger logger)
+            => this.logger = logger;
+
         public async Task<IBrokerClient> GetRoutedClientAsync(string group, IEnumerable<IBrokerClient> clients, IAvailabilityChecker checker)
         {
             var availableClients = new List<IBrokerClient>();
-            //Parallel.ForEach(clients, async client =>
-            //{
-            //    if (await checker.IsAvailableAsync(client))
-            //    {
-            //        availableClients.Add(client);
-            //    }
-            //});
 
             foreach (var client in clients)
             {

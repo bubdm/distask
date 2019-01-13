@@ -50,26 +50,26 @@ namespace Distask.TaskDispatchers
 
         #region Public Constructors
 
-        public TaskDispatcher()
-            : this(TaskDispatcherConfig.AnyAddressDefaultPort, 
-                  new NopLogger<TaskDispatcher>(), 
-                  new RandomizedRouter(), 
-                  new HealthLevelChecker(HealthLevel.Excellent))
-        { }
+        //public TaskDispatcher()
+        //    : this(TaskDispatcherConfig.AnyAddressDefaultPort, 
+        //          new NopLogger<TaskDispatcher>(), 
+        //          new RandomizedRouter(), 
+        //          new HealthLevelChecker(HealthLevel.Excellent))
+        //{ }
 
-        public TaskDispatcher(int port)
-            : this(TaskDispatcherConfig.AnyAddress(port), 
-                  new NopLogger<TaskDispatcher>(), 
-                  new RandomizedRouter(), 
-                  new HealthLevelChecker(HealthLevel.Excellent))
-        { }
+        //public TaskDispatcher(int port)
+        //    : this(TaskDispatcherConfig.AnyAddress(port), 
+        //          new NopLogger<TaskDispatcher>(), 
+        //          new RandomizedRouter(), 
+        //          new HealthLevelChecker(HealthLevel.Excellent))
+        //{ }
 
-        public TaskDispatcher(ILogger<TaskDispatcher> logger)
-            : this(TaskDispatcherConfig.AnyAddressDefaultPort,
-                  logger,
-                  new RandomizedRouter(),
-                  new HealthLevelChecker(HealthLevel.Excellent))
-        { }
+        //public TaskDispatcher(ILogger<TaskDispatcher> logger)
+        //    : this(TaskDispatcherConfig.AnyAddressDefaultPort,
+        //          logger,
+        //          new RandomizedRouter(),
+        //          new HealthLevelChecker(HealthLevel.Excellent))
+        //{ }
 
         public TaskDispatcher(ILogger<TaskDispatcher> logger, IRouter router, IAvailabilityChecker availabilityChecker)
             : this(TaskDispatcherConfig.AnyAddressDefaultPort, logger, router, availabilityChecker)
@@ -97,7 +97,7 @@ namespace Distask.TaskDispatchers
             };
 
             this.registrationServer.Start();
-            logger.LogInformation("Registration service started successfully.");
+            logger.LogDebug("Registration service started successfully.");
         }
 
         #endregion Public Constructors

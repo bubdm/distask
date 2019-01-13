@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Console;
+using Distask.TaskDispatchers.Config;
 
 namespace Distask.ConsoleApp
 {
@@ -29,8 +30,12 @@ namespace Distask.ConsoleApp
                 builder.AddConsole();
             });
 
-            serviceCollection.AddScoped<ITaskDispatcher>(sp => new TaskDispatcher(sp.GetService<ILogger<TaskDispatcher>>()));
-            var serviceProvider = serviceCollection.BuildServiceProvider();
+            var serviceProvider = serviceCollection
+                .AddScoped<IRouter, RandomizedRouter>()
+                .AddScoped<IAvailabilityChecker>(s => new HealthLevelChecker(s.GetService<ILogger<HealthLevelChecker>>(), HealthLevel.Excellent))
+                .AddScoped<ITaskDispatcher, TaskDispatcher>()
+                .BuildServiceProvider();
+
             var distributor = serviceProvider.GetService<ITaskDispatcher>();
 
             using (distributor)

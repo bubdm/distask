@@ -6,12 +6,17 @@ using System.Threading.Tasks;
 using Distask.Brokers;
 using Distask.TaskDispatchers;
 using Distask.TaskDispatchers.Client;
+using Microsoft.Extensions.Logging;
 
 namespace Distask.TaskDispatchers.Routing
 {
     public sealed class RandomizedRouter : Router
     {
         private static readonly Random rnd = new Random(DateTime.UtcNow.Millisecond);
+
+        public RandomizedRouter(ILogger<RandomizedRouter> logger)
+            : base(logger)
+        { }
 
         protected override Task<IBrokerClient> GetRoutedClientCoreAsync(string group, IEnumerable<IBrokerClient> availableClients)
         {
