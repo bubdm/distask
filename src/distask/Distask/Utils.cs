@@ -9,11 +9,12 @@ namespace Distask
         public static class Constants
         {
             public const string DefaultGroupName = "default";
+
             public const string BrokerHostConfigurationSectionName = "distask.broker";
 
-            public const int MasterDefaultPort = 5919;
+            public const int TaskDispatcherDefaultPort = 5919;
 
-            public const int DefaultRetryCount = 5;
+            public const int DefaultRerouteRetryCount = 5;
         }
     }
 }

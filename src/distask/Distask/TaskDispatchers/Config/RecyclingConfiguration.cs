@@ -4,21 +4,23 @@ using System.Text;
 
 namespace Distask.TaskDispatchers.Config
 {
-    public sealed class RecyclingConfig
+    public sealed class RecyclingConfiguration
     {
         private static readonly TimeSpan DefaultInterval = TimeSpan.FromMinutes(30);
 
-        public RecyclingConfig()
+        public static readonly RecyclingConfiguration Default = new RecyclingConfiguration();
+
+        public RecyclingConfiguration()
         {
             this.Interval = DefaultInterval;
         }
 
-        public RecyclingConfig(TimeSpan interval)
+        public RecyclingConfiguration(TimeSpan interval)
         {
             this.Interval = interval;
         }
 
-        public RecyclingConfig(string interval)
+        public RecyclingConfiguration(string interval)
         {
             if (TimeSpan.TryParse(interval, out var v))
             {

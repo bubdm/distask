@@ -23,26 +23,46 @@ namespace Distask.TaskDispatchers.Client
     /// Represents the index of the broker client that could be used as a reference
     /// when measuring the availability of the clients.
     /// </summary>
-    public sealed class Index
+    public sealed class BrokerClientState
     {
-        private long totalRequests = 0L;
-        private long forwardedRequests = 0L;
-        private long lastRequestTimeData;
-        private long lastSuccessRequestTimeData;
-        private long lastRoutedTimeData;
+
+        #region Private Fields
 
         private readonly ConcurrentBag<ExceptionLogEntry> exceptionLogEntries = new ConcurrentBag<ExceptionLogEntry>();
+        private long forwardedRequests = 0L;
+        private long lastRequestTimeData;
+        private long lastRoutedTimeData;
+        private long lastSuccessRequestTimeData;
+        private int lifetimeStateData;
+        private long totalRequests = 0L;
 
-        public void AddException(Exception exception)
+        #endregion Private Fields
+
+        #region Public Constructors
+
+        public BrokerClientState()
         {
-            exceptionLogEntries.Add(new ExceptionLogEntry(exception));
+            this.LifetimeState = BrokerClientLifetimeState.Alive;
         }
 
-        public long TotalRequests => this.totalRequests;
+        #endregion Public Constructors
 
-        public long TotalExceptions => this.exceptionLogEntries.Count;
+        #region Public Properties
 
         public long ForwardedRequests => this.forwardedRequests;
+
+        public BrokerClientHealthLevel HealthLevel
+        {
+            get
+            {
+                var score = this.TotalRequests == 0 ?
+                    100 :
+                    (this.TotalRequests - this.exceptionLogEntries.Count) * 100L / this.TotalRequests;
+                var numbersPerBucket = 100 / (Enum.GetNames(typeof(BrokerClientHealthLevel)).Length - 1);
+                var bucketNum = score / numbersPerBucket + 1;
+                return (BrokerClientHealthLevel)bucketNum;
+            }
+        }
 
         public Exception LastException { get; internal set; }
 
@@ -59,19 +79,6 @@ namespace Distask.TaskDispatchers.Client
             }
         }
 
-        public DateTime LastSuccessRequestTime
-        {
-            get
-            {
-                var data = Interlocked.CompareExchange(ref this.lastSuccessRequestTimeData, 0, 0);
-                return DateTime.FromBinary(data);
-            }
-            internal set
-            {
-                Interlocked.Exchange(ref this.lastSuccessRequestTimeData, value.ToBinary());
-            }
-        }
-
         public DateTime LastRoutedTime
         {
             get
@@ -85,23 +92,44 @@ namespace Distask.TaskDispatchers.Client
             }
         }
 
-        internal void IncreaseTotalRequests() => Interlocked.Increment(ref this.totalRequests);
-
-        internal void IncreaseForwardedRequests() => Interlocked.Increment(ref this.forwardedRequests);
-
-        public HealthLevel HealthLevel
+        public DateTime LastSuccessRequestTime
         {
             get
             {
-                var score = this.TotalRequests == 0 ?
-                    100 :
-                    (this.TotalRequests - this.exceptionLogEntries.Count) * 100L / this.TotalRequests;
-                var numbersPerBucket = 100 / (Enum.GetNames(typeof(HealthLevel)).Length - 1);
-                var bucketNum = score / numbersPerBucket + 1;
-                return (HealthLevel)bucketNum;
+                var data = Interlocked.CompareExchange(ref this.lastSuccessRequestTimeData, 0, 0);
+                return DateTime.FromBinary(data);
+            }
+            internal set
+            {
+                Interlocked.Exchange(ref this.lastSuccessRequestTimeData, value.ToBinary());
             }
         }
 
+        public BrokerClientLifetimeState LifetimeState
+        {
+            get
+            {
+                return (BrokerClientLifetimeState)this.lifetimeStateData;
+            }
+            set
+            {
+                var val = Convert.ToInt32(value);
+                Interlocked.Exchange(ref this.lifetimeStateData, val);
+            }
+        }
+
+        public long TotalExceptions => this.exceptionLogEntries.Count;
+
+        public long TotalRequests => this.totalRequests;
+
+        #endregion Public Properties
+
+        #region Public Methods
+
+        public void AddException(Exception exception)
+        {
+            exceptionLogEntries.Add(new ExceptionLogEntry(exception));
+        }
         public IEnumerable<TException> GetExceptions<TException>(TimeSpan? period = null)
             where TException : Exception => GetExceptions(typeof(TException), period).Select(item => item as TException);
 
@@ -110,9 +138,9 @@ namespace Distask.TaskDispatchers.Client
             if (period == null)
             {
                 return from entry in this.exceptionLogEntries
-                             let extType = entry.Exception.GetType()
-                             where extType == exceptionType || extType.IsSubclassOf(exceptionType)
-                             select entry.Exception;
+                       let extType = entry.Exception.GetType()
+                       where extType == exceptionType || extType.IsSubclassOf(exceptionType)
+                       select entry.Exception;
             }
             else
             {
@@ -123,5 +151,16 @@ namespace Distask.TaskDispatchers.Client
                        select entry.Exception;
             }
         }
+
+        #endregion Public Methods
+
+        #region Internal Methods
+
+        internal void IncreaseForwardedRequests() => Interlocked.Increment(ref this.forwardedRequests);
+
+        internal void IncreaseTotalRequests() => Interlocked.Increment(ref this.totalRequests);
+
+        #endregion Internal Methods
+
     }
 }

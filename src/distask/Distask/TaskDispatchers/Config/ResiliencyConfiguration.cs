@@ -4,9 +4,9 @@ using System.Text;
 
 namespace Distask.TaskDispatchers.Config
 {
-    public class ResiliencyConfig
+    public class ResiliencyConfiguration
     {
-        public static readonly ResiliencyConfig DefaultResiliencyConfig = new ResiliencyConfig
+        public static readonly ResiliencyConfiguration Default = new ResiliencyConfiguration
         {
             CircuitBreakOnExceptions = 3,
             CircuitBreakMilliseconds = 5000,

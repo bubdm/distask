@@ -22,9 +22,9 @@ namespace Distask.TaskDispatchers.AvailabilityCheckers
             this.maximumExceptionCount = maximumExceptionCount;
         }
 
-        public override Task<bool> IsAvailableAsync(IBrokerClient client)
+        protected override Task<bool> IsAvailableInternalAsync(IBrokerClient client)
         {
-            return Task.FromResult(client.Index.TotalExceptions <= this.maximumExceptionCount);
+            return Task.FromResult(client.State.TotalExceptions <= this.maximumExceptionCount);
         }
     }
 }

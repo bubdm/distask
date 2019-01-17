@@ -30,9 +30,11 @@ namespace Distask.ConsoleApp
                 builder.AddConsole();
             });
 
+            var taskDispatcherConfig = new TaskDispatcherConfiguration(new RecyclingConfiguration("0:0:5"), BrokerClientConfiguration.Default);
             var serviceProvider = serviceCollection
                 .AddScoped<IRouter, RandomizedRouter>()
-                .AddScoped<IAvailabilityChecker>(s => new HealthLevelChecker(s.GetService<ILogger<HealthLevelChecker>>(), HealthLevel.Excellent))
+                .AddScoped(s => taskDispatcherConfig)
+                .AddScoped<IAvailabilityChecker>(s => new HealthLevelChecker(s.GetService<ILogger<HealthLevelChecker>>(), BrokerClientHealthLevel.Excellent))
                 .AddScoped<ITaskDispatcher, TaskDispatcher>()
                 .BuildServiceProvider();
 

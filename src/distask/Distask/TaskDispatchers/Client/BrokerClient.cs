@@ -31,7 +31,7 @@ namespace Distask.TaskDispatchers.Client
         #region Private Fields
 
         private readonly Channel channel;
-        private readonly TaskDispatcherConfig config;
+        private readonly TaskDispatcherConfiguration config;
         private readonly Policy policy;
         private readonly DistaskServiceClient wrappedClient;
         private bool disposedValue = false;
@@ -40,7 +40,7 @@ namespace Distask.TaskDispatchers.Client
 
         #region Public Constructors
 
-        public BrokerClient(string name, string host, int port, ChannelCredentials channelCredentials, TaskDispatcherConfig config)
+        public BrokerClient(string name, string host, int port, ChannelCredentials channelCredentials, TaskDispatcherConfiguration config)
         {
             this.Name = name;
             this.Host = host;
@@ -48,12 +48,12 @@ namespace Distask.TaskDispatchers.Client
             this.channel = new Channel(host, port, channelCredentials);
             this.wrappedClient = new DistaskServiceClient(channel);
             this.config = config;
-            if (config.BrokerClient.Resiliency.Enabled)
+            if (config.BrokerClientConfiguration.Resiliency.Enabled)
             {
                 this.policy = Policy.Handle<Exception>()
                     .CircuitBreakerAsync(
-                        config.BrokerClient.Resiliency.CircuitBreakOnExceptions,
-                        TimeSpan.FromMilliseconds(config.BrokerClient.Resiliency.CircuitBreakMilliseconds),
+                        config.BrokerClientConfiguration.Resiliency.CircuitBreakOnExceptions,
+                        TimeSpan.FromMilliseconds(config.BrokerClientConfiguration.Resiliency.CircuitBreakMilliseconds),
                         this.OnCircuitBroken, this.OnCircuitReset, this.OnCircuitHalfOpen);
             }
             else
@@ -85,7 +85,7 @@ namespace Distask.TaskDispatchers.Client
         #region Public Properties
 
         public string Host { get; }
-        public Index Index { get; } = new Index();
+        public BrokerClientState State { get; } = new BrokerClientState();
         public string Name { get; }
         public int Port { get; }
 
@@ -116,22 +116,22 @@ namespace Distask.TaskDispatchers.Client
 
         public async Task<DistaskResponse> ExecuteAsync(DistaskRequest request, CancellationToken cancellationToken = default(CancellationToken))
         {
-            this.Index.IncreaseTotalRequests();
-            this.Index.LastRequestTime = DateTime.UtcNow;
+            this.State.IncreaseTotalRequests();
+            this.State.LastRequestTime = DateTime.UtcNow;
             try
             {
                 return await policy.ExecuteAsync(async ct =>
                 {
-                    this.Index.IncreaseForwardedRequests();
+                    this.State.IncreaseForwardedRequests();
                     var result = await wrappedClient.ExecuteAsync(request, cancellationToken: ct);
-                    this.Index.LastSuccessRequestTime = DateTime.UtcNow;
+                    this.State.LastSuccessRequestTime = DateTime.UtcNow;
                     return result;
                 }, cancellationToken);
             }
             catch (Exception ex)
             {
-                this.Index.LastException = ex;
-                this.Index.AddException(ex);
+                this.State.LastException = ex;
+                this.State.AddException(ex);
                 throw;
             }
         }
@@ -153,7 +153,7 @@ namespace Distask.TaskDispatchers.Client
 
         public override string ToString()
         {
-            return $"ClientName: {Name}, ClientHost: {Host}, ClientPort: {Port}, HealthLevel: {this.Index.HealthLevel}, TotalRequests: {this.Index.TotalRequests}, TotalExceptions: {this.Index.TotalExceptions}";
+            return $"ClientName: {Name}, ClientHost: {Host}, ClientPort: {Port}, HealthLevel: {this.State.HealthLevel}, TotalRequests: {this.State.TotalRequests}, TotalExceptions: {this.State.TotalExceptions}";
         }
 
         #endregion Public Methods

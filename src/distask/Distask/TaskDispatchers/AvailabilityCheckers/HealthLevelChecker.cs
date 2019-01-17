@@ -9,14 +9,14 @@ namespace Distask.TaskDispatchers.AvailabilityCheckers
 {
     public sealed class HealthLevelChecker : AvailabilityChecker
     {
-        private readonly HealthLevel minLevel;
+        private readonly BrokerClientHealthLevel minLevel;
 
-        public HealthLevelChecker(ILogger<HealthLevelChecker> logger, HealthLevel minLevel)
+        public HealthLevelChecker(ILogger<HealthLevelChecker> logger, BrokerClientHealthLevel minLevel)
             : base(logger)
         {
             this.minLevel = minLevel;
         }
 
-        public override Task<bool> IsAvailableAsync(IBrokerClient client) => Task.FromResult(client.Index.HealthLevel >= minLevel);
+        protected override Task<bool> IsAvailableInternalAsync(IBrokerClient client) => Task.FromResult(client.State.HealthLevel >= minLevel);
     }
 }

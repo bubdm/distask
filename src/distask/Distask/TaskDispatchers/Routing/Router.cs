@@ -34,7 +34,7 @@ namespace Distask.TaskDispatchers.Routing
             }
 
             var brokerClient = await this.GetRoutedClientCoreAsync(group, availableClients);
-            brokerClient.Index.LastRoutedTime = DateTime.UtcNow;
+            brokerClient.State.LastRoutedTime = DateTime.UtcNow;
             return brokerClient;
         }
 

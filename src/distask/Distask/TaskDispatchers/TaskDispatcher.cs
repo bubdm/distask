@@ -38,57 +38,39 @@ namespace Distask.TaskDispatchers
 
         private readonly IAvailabilityChecker availabilityChecker;
         private readonly ConcurrentDictionary<string, ConcurrentBag<IBrokerClient>> brokerClients = new ConcurrentDictionary<string, ConcurrentBag<IBrokerClient>>();
-        private readonly TaskDispatcherConfig config;
+        private readonly TaskDispatcherConfiguration config;
+        private readonly ILogger logger;
+        private readonly System.Timers.Timer recycleTimer;
         private readonly Server registrationServer;
         private readonly RetryPolicy<DistaskResponse> retryPolicy;
         private readonly IRouter router;
-        private readonly ILogger logger;
-
         private bool disposedValue = false;
 
         #endregion Private Fields
 
         #region Public Constructors
 
-        //public TaskDispatcher()
-        //    : this(TaskDispatcherConfig.AnyAddressDefaultPort, 
-        //          new NopLogger<TaskDispatcher>(), 
-        //          new RandomizedRouter(), 
-        //          new HealthLevelChecker(HealthLevel.Excellent))
-        //{ }
-
-        //public TaskDispatcher(int port)
-        //    : this(TaskDispatcherConfig.AnyAddress(port), 
-        //          new NopLogger<TaskDispatcher>(), 
-        //          new RandomizedRouter(), 
-        //          new HealthLevelChecker(HealthLevel.Excellent))
-        //{ }
-
-        //public TaskDispatcher(ILogger<TaskDispatcher> logger)
-        //    : this(TaskDispatcherConfig.AnyAddressDefaultPort,
-        //          logger,
-        //          new RandomizedRouter(),
-        //          new HealthLevelChecker(HealthLevel.Excellent))
-        //{ }
-
         public TaskDispatcher(ILogger<TaskDispatcher> logger, IRouter router, IAvailabilityChecker availabilityChecker)
-            : this(TaskDispatcherConfig.AnyAddressDefaultPort, logger, router, availabilityChecker)
+            : this(TaskDispatcherConfiguration.AnyAddressDefaultPort, logger, router, availabilityChecker)
         { }
 
         public TaskDispatcher(int port, ILogger<TaskDispatcher> logger, IRouter router,  IAvailabilityChecker availabilityChecker)
-            : this(TaskDispatcherConfig.AnyAddress(port), logger, router, availabilityChecker)
+            : this(TaskDispatcherConfiguration.AnyAddress(port), logger, router, availabilityChecker)
         { }
 
-        public TaskDispatcher(TaskDispatcherConfig config, ILogger<TaskDispatcher> logger, IRouter router, IAvailabilityChecker availabilityChecker)
+        public TaskDispatcher(TaskDispatcherConfiguration config, ILogger<TaskDispatcher> logger, IRouter router, IAvailabilityChecker availabilityChecker)
         {
             this.config = config;
             this.logger = logger;
             this.router = router;
             this.availabilityChecker = availabilityChecker;
 
+            this.recycleTimer = new System.Timers.Timer(this.config.RecyclingConfiguration.Interval.TotalMilliseconds);
+            this.recycleTimer.Elapsed += RecycleTimer_Elapsed;
+
             retryPolicy = Policy.Handle<Exception>()
                 .OrResult<DistaskResponse>(r => r.Status != Contracts.StatusCode.Success)
-                .RetryAsync(5, new Action<DelegateResult<DistaskResponse>, int>(this.OnRetry));
+                .RetryAsync(config.BrokerClientConfiguration.RerouteRetryCount, new Action<DelegateResult<DistaskResponse>, int>(this.OnRetry));
 
             this.registrationServer = new Server
             {
@@ -97,6 +79,7 @@ namespace Distask.TaskDispatchers
             };
 
             this.registrationServer.Start();
+            this.recycleTimer.Start();
             logger.LogDebug("Registration service started successfully.");
         }
 
@@ -141,6 +124,7 @@ namespace Distask.TaskDispatchers
                         }
 
                         throw new TaskDispatchException("No broker available to serve the request.");
+
                     }, cancellationToken);
 
                     return result.ToResponseMessage();
@@ -215,6 +199,10 @@ namespace Distask.TaskDispatchers
                     {
                         this.DisposeBrokerClient(brokerClient);
                     }
+
+                    // Stops the recycling timer.
+                    this.recycleTimer.Stop();
+                    this.recycleTimer.Dispose();
                 }
 
                 disposedValue = true;
@@ -239,17 +227,17 @@ namespace Distask.TaskDispatchers
 
         private void CreatedClient_CircuitBroken(object sender, BrokerClientCircuitBrokenEventArgs e)
         {
-            
+
         }
 
         private void CreatedClient_CircuitHalfOpen(object sender, BrokerClientCircuitHalfOpenEventArgs e)
         {
-            
+
         }
 
         private void CreatedClient_CircuitReset(object sender, BrokerClientCircuitResetEventArgs e)
         {
-            
+
         }
 
         private void DisposeBrokerClient(IBrokerClient brokerClient)
@@ -263,10 +251,25 @@ namespace Distask.TaskDispatchers
 
         private void OnRetry(DelegateResult<DistaskResponse> delegateResult, int count)
         {
-            
+
+        }
+
+        private void RecycleTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            if (sender is System.Timers.Timer timer)
+            {
+                try
+                {
+                    timer.Enabled = false;
+
+                }
+                finally
+                {
+                    timer.Enabled = true;
+                }
+            }
         }
 
         #endregion Private Methods
-
     }
 }

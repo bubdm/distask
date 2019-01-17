@@ -23,6 +23,7 @@ namespace Distask.TaskDispatchers.AvailabilityCheckers
     /// <seealso cref="Distask.TaskDispatchers.AvailabilityCheckers.IAvailabilityChecker" />
     public abstract class AvailabilityChecker : IAvailabilityChecker
     {
+
         #region Protected Fields
 
         protected readonly ILogger logger;
@@ -50,8 +51,22 @@ namespace Distask.TaskDispatchers.AvailabilityCheckers
         /// The <see cref="T:System.Threading.Tasks.Task" /> which executes the checking and returns a <see cref="T:System.Boolean" />
         /// value that indicates whether the specified client is available.
         /// </returns>
-        public abstract Task<bool> IsAvailableAsync(IBrokerClient client);
+        public async Task<bool> IsAvailableAsync(IBrokerClient client)
+        {
+            if (client.State.LifetimeState != BrokerClientLifetimeState.Alive)
+            {
+                return false;
+            }
+
+            return await IsAvailableInternalAsync(client);
+        }
 
         #endregion Public Methods
+
+        #region Protected Methods
+
+        protected abstract Task<bool> IsAvailableInternalAsync(IBrokerClient client);
+
+        #endregion Protected Methods
     }
 }

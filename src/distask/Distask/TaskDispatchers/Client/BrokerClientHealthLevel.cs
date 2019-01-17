@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Distask.TaskDispatchers.Client
 {
-    public enum HealthLevel
+    public enum BrokerClientHealthLevel
     {
         Unavailable = 1,
         VeryPoor = 2,
