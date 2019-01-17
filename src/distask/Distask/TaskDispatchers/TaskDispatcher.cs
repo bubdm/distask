@@ -131,12 +131,12 @@ namespace Distask.TaskDispatchers
                 {
                     var result = await this.retryPolicy.ExecuteAsync(async (ct) =>
                     {
-                        var parameters = new RepeatedField<string> { requestMessage.Parameters };
-                        var distaskRequest = new DistaskRequest { TaskName = requestMessage.TaskName };
-                        distaskRequest.Parameters.AddRange(requestMessage.Parameters);
                         var client = await router.GetRoutedClientAsync(group, clients, this.availabilityChecker);
                         if (client != null)
                         {
+                            var parameters = new RepeatedField<string> { requestMessage.Parameters };
+                            var distaskRequest = new DistaskRequest { TaskName = requestMessage.TaskName };
+                            distaskRequest.Parameters.AddRange(requestMessage.Parameters);
                             return await client.ExecuteAsync(distaskRequest, cancellationToken);
                         }
 

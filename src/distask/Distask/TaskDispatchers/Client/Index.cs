@@ -29,6 +29,7 @@ namespace Distask.TaskDispatchers.Client
         private long forwardedRequests = 0L;
         private long lastRequestTimeData;
         private long lastSuccessRequestTimeData;
+        private long lastRoutedTimeData;
 
         private readonly ConcurrentBag<ExceptionLogEntry> exceptionLogEntries = new ConcurrentBag<ExceptionLogEntry>();
 
@@ -68,6 +69,19 @@ namespace Distask.TaskDispatchers.Client
             internal set
             {
                 Interlocked.Exchange(ref this.lastSuccessRequestTimeData, value.ToBinary());
+            }
+        }
+
+        public DateTime LastRoutedTime
+        {
+            get
+            {
+                var data = Interlocked.CompareExchange(ref this.lastRoutedTimeData, 0, 0);
+                return DateTime.FromBinary(data);
+            }
+            internal set
+            {
+                Interlocked.Exchange(ref this.lastRoutedTimeData, value.ToBinary());
             }
         }
 
