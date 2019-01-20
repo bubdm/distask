@@ -11,6 +11,14 @@ namespace Distask.TaskDispatchers
     {
         event EventHandler<BrokerClientRegisteredEventArgs> BrokerClientRegistered;
 
+        event EventHandler<BrokerClientRecycledEventArgs> BrokerClientRecycled;
+
+        event EventHandler<BrokerClientDisposedEventArgs> BrokerClientDisposed;
+
+        event EventHandler<RecyclingEventArgs> RecyclingStarted;
+
+        event EventHandler<RecyclingEventArgs> RecyclingCompleted;
+
         Task<ResponseMessage> DispatchAsync(RequestMessage requestMessage, string group = null, CancellationToken cancellationToken = default(CancellationToken));
     }
 }

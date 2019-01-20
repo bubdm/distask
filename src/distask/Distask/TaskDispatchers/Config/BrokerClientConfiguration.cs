@@ -9,10 +9,13 @@ namespace Distask.TaskDispatchers.Config
         public static readonly BrokerClientConfiguration Default = new BrokerClientConfiguration
         {
             Resiliency = ResiliencyConfiguration.Default,
-            RerouteRetryCount = Utils.Constants.DefaultRerouteRetryCount
+            RerouteRetryCount = Utils.Constants.DefaultRerouteRetryCount,
+            LastRoutedTimeThreshold = TimeSpan.FromSeconds(15)
         };
 
         public int RerouteRetryCount { get; set; }
+
+        public TimeSpan LastRoutedTimeThreshold { get; set; }
 
         public ResiliencyConfiguration Resiliency { get; set; }
     }

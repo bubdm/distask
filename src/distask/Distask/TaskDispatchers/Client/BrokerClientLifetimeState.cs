@@ -19,6 +19,7 @@ namespace Distask.TaskDispatchers.Client
     public enum BrokerClientLifetimeState : int
     {
         Alive = 0,
-        Recycling = 1
+        Recycled = 1,
+        Disposed = 2
     }
 }

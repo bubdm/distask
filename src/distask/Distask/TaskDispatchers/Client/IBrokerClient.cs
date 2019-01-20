@@ -18,6 +18,8 @@ namespace Distask.TaskDispatchers.Client
 
         event EventHandler<BrokerClientCircuitResetEventArgs> CircuitReset;
 
+        event EventHandler<BrokerClientDisposedEventArgs> Disposed;
+
         #endregion Public Events
 
         #region Public Properties

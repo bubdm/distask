@@ -42,7 +42,11 @@ namespace Distask.ConsoleApp
 
             using (distributor)
             {
-                distributor.BrokerClientRegistered += Distributor_BrokerRegistered;
+                distributor.BrokerClientRegistered += Distributor_BrokerClientRegistered;
+                distributor.BrokerClientRecycled += Distributor_BrokerClientRecycled;
+                distributor.BrokerClientDisposed += Distributor_BrokerClientDisposed;
+                distributor.RecyclingStarted += Distributor_RecyclingStarted;
+                distributor.RecyclingCompleted += Distributor_RecyclingCompleted;
 
                 do
                 {
@@ -65,7 +69,7 @@ namespace Distask.ConsoleApp
                         }
                         catch (AggregateException ex) when (ex.InnerException != null && ex.InnerException is DistaskException dex)
                         {
-                            Console.WriteLine($"Failed: {dex.Message}");
+                            // Console.WriteLine($"Failed: {dex.Message}");
                         }
                     }
 
@@ -103,11 +107,34 @@ namespace Distask.ConsoleApp
                 //Console.ReadLine();
                 //timer.Stop();
 
-                distributor.BrokerClientRegistered -= Distributor_BrokerRegistered;
+                distributor.BrokerClientRegistered -= Distributor_BrokerClientRegistered;
+                distributor.BrokerClientRecycled -= Distributor_BrokerClientRecycled;
+                distributor.RecyclingStarted -= Distributor_RecyclingStarted;
+                distributor.RecyclingCompleted -= Distributor_RecyclingCompleted;
             }
         }
 
-        private static void Distributor_BrokerRegistered(object sender, BrokerClientRegisteredEventArgs e)
+        private static void Distributor_BrokerClientDisposed(object sender, BrokerClientDisposedEventArgs e)
+        {
+            Console.WriteLine($"Broker client has been disposed. {e}");
+        }
+
+        private static void Distributor_RecyclingCompleted(object sender, RecyclingEventArgs e)
+        {
+            Console.WriteLine("Recycling started.");
+        }
+
+        private static void Distributor_RecyclingStarted(object sender, RecyclingEventArgs e)
+        {
+            Console.WriteLine("Recycling completed.");
+        }
+
+        private static void Distributor_BrokerClientRecycled(object sender, BrokerClientRecycledEventArgs e)
+        {
+            Console.WriteLine($"Broker client has been recycled: {e}");
+        }
+
+        private static void Distributor_BrokerClientRegistered(object sender, BrokerClientRegisteredEventArgs e)
         {
             Console.WriteLine($"New broker registered with the following information: {e}");
         }

@@ -79,16 +79,24 @@ namespace Distask.TaskDispatchers.Client
             }
         }
 
-        public DateTime LastRoutedTime
+        public DateTime? LastRoutedTime
         {
             get
             {
+                if (this.lastRoutedTimeData == 0)
+                {
+                    return null;
+                }
+
                 var data = Interlocked.CompareExchange(ref this.lastRoutedTimeData, 0, 0);
                 return DateTime.FromBinary(data);
             }
             internal set
             {
-                Interlocked.Exchange(ref this.lastRoutedTimeData, value.ToBinary());
+                if (value.HasValue)
+                {
+                    Interlocked.Exchange(ref this.lastRoutedTimeData, value.Value.ToBinary());
+                }
             }
         }
 
@@ -159,6 +167,14 @@ namespace Distask.TaskDispatchers.Client
         internal void IncreaseForwardedRequests() => Interlocked.Increment(ref this.forwardedRequests);
 
         internal void IncreaseTotalRequests() => Interlocked.Increment(ref this.totalRequests);
+
+        internal void ClearExceptionLogEntries()
+        {
+            while (!this.exceptionLogEntries.IsEmpty)
+            {
+                this.exceptionLogEntries.TryTake(out var _);
+            }
+        }
 
         #endregion Internal Methods
 

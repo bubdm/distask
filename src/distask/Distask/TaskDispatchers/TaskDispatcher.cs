@@ -11,7 +11,6 @@
  * https://github.com/daxnet/distask/blob/master/LICENSE
  ****************************************************************************/
 
-using Distask.Brokers;
 using Distask.Contracts;
 using Distask.TaskDispatchers.Config;
 using Google.Protobuf.Collections;
@@ -28,6 +27,8 @@ using Distask.TaskDispatchers.AvailabilityCheckers;
 using Distask.TaskDispatchers.Routing;
 using Distask.TaskDispatchers.Client;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using Polly.CircuitBreaker;
 
 namespace Distask.TaskDispatchers
 {
@@ -37,7 +38,7 @@ namespace Distask.TaskDispatchers
         #region Private Fields
 
         private readonly IAvailabilityChecker availabilityChecker;
-        private readonly ConcurrentDictionary<string, ConcurrentBag<IBrokerClient>> brokerClients = new ConcurrentDictionary<string, ConcurrentBag<IBrokerClient>>();
+        private readonly ConcurrentDictionary<string, List<IBrokerClient>> brokerClients = new ConcurrentDictionary<string, List<IBrokerClient>>();
         private readonly TaskDispatcherConfiguration config;
         private readonly ILogger logger;
         private readonly System.Timers.Timer recycleTimer;
@@ -70,7 +71,7 @@ namespace Distask.TaskDispatchers
 
             retryPolicy = Policy.Handle<Exception>()
                 .OrResult<DistaskResponse>(r => r.Status != Contracts.StatusCode.Success)
-                .RetryAsync(config.BrokerClientConfiguration.RerouteRetryCount, new Action<DelegateResult<DistaskResponse>, int>(this.OnRetry));
+                .RetryAsync(config.BrokerClientConfiguration.RerouteRetryCount);
 
             this.registrationServer = new Server
             {
@@ -97,7 +98,13 @@ namespace Distask.TaskDispatchers
 
         #region Public Events
 
+        public event EventHandler<BrokerClientRecycledEventArgs> BrokerClientRecycled;
+
         public event EventHandler<BrokerClientRegisteredEventArgs> BrokerClientRegistered;
+        public event EventHandler<RecyclingEventArgs> RecyclingCompleted;
+
+        public event EventHandler<RecyclingEventArgs> RecyclingStarted;
+        public event EventHandler<BrokerClientDisposedEventArgs> BrokerClientDisposed;
 
         #endregion Public Events
 
@@ -117,13 +124,23 @@ namespace Distask.TaskDispatchers
                         var client = await router.GetRoutedClientAsync(group, clients, this.availabilityChecker);
                         if (client != null)
                         {
-                            var parameters = new RepeatedField<string> { requestMessage.Parameters };
-                            var distaskRequest = new DistaskRequest { TaskName = requestMessage.TaskName };
-                            distaskRequest.Parameters.AddRange(requestMessage.Parameters);
-                            return await client.ExecuteAsync(distaskRequest, cancellationToken);
+                            try
+                            {
+                                var parameters = new RepeatedField<string> { requestMessage.Parameters };
+                                var distaskRequest = new DistaskRequest { TaskName = requestMessage.TaskName };
+                                distaskRequest.Parameters.AddRange(requestMessage.Parameters);
+                                return await client.ExecuteAsync(distaskRequest, ct);
+                            }
+                            catch (BrokenCircuitException bce) when (bce.InnerException != null && bce.InnerException is RpcException rpcEx && rpcEx.StatusCode == Grpc.Core.StatusCode.Unavailable)
+                            {
+                                client.State.LifetimeState = BrokerClientLifetimeState.Recycled;
+                                this.OnBrokerClientRecycled(new BrokerClientRecycledEventArgs(client));
+
+                                throw new ConnectionLostException($"Client '{client}' has been flagged to be recycled because the connection to that client has lost.", rpcEx);
+                            }
                         }
 
-                        throw new TaskDispatchException("No broker available to serve the request.");
+                        throw new NoAvailableClientException(group ?? Utils.Constants.DefaultGroupName);
 
                     }, cancellationToken);
 
@@ -139,7 +156,7 @@ namespace Distask.TaskDispatchers
                 }
             }
 
-            throw new TaskDispatchException("No broker available to serve the request.");
+            throw new NoAvailableClientException(group ?? Utils.Constants.DefaultGroupName);
         }
 
         public void Dispose()
@@ -162,7 +179,8 @@ namespace Distask.TaskDispatchers
 
             if (brokerClients.TryGetValue(request.Group, out var clients))
             {
-                if (clients.Any(c => string.Equals(c.Name, request.Name) || (string.Equals(c.Host, request.Host) && c.Port == request.Port)))
+                if (clients.Where(c => c.State.LifetimeState == BrokerClientLifetimeState.Alive)
+                    .Any(c => string.Equals(c.Name, request.Name) || (string.Equals(c.Host, request.Host) && c.Port == request.Port)))
                 {
                     return Task.FromResult(RegistrationResponse.AlreadyExists($"The client '{request.Name}' has already been registered."));
                 }
@@ -172,11 +190,11 @@ namespace Distask.TaskDispatchers
             }
             else
             {
-                clients = new ConcurrentBag<IBrokerClient>(new[] { CreateBrokerClient(request.Name, request.Host, request.Port) });
+                clients = new List<IBrokerClient>(new[] { CreateBrokerClient(request.Name, request.Host, request.Port) });
                 brokerClients.TryAdd(request.Group, clients);
             }
 
-            this.OnBrokerRegistered(new BrokerClientRegisteredEventArgs(request.Group, request.Name, request.Host, request.Port));
+            this.OnBrokerClientRegistered(new BrokerClientRegisteredEventArgs(request.Group, request.Name, request.Host, request.Port));
 
             return Task.FromResult(RegistrationResponse.Success());
         }
@@ -202,6 +220,7 @@ namespace Distask.TaskDispatchers
 
                     // Stops the recycling timer.
                     this.recycleTimer.Stop();
+                    this.recycleTimer.Elapsed -= RecycleTimer_Elapsed;
                     this.recycleTimer.Dispose();
                 }
 
@@ -209,7 +228,14 @@ namespace Distask.TaskDispatchers
             }
         }
 
-        protected virtual void OnBrokerRegistered(BrokerClientRegisteredEventArgs e) => this.BrokerClientRegistered?.Invoke(this, e);
+        protected virtual void OnBrokerClientRecycled(BrokerClientRecycledEventArgs e) => this.BrokerClientRecycled?.Invoke(this, e);
+
+        protected virtual void OnBrokerClientRegistered(BrokerClientRegisteredEventArgs e) => this.BrokerClientRegistered?.Invoke(this, e);
+        protected virtual void OnRecyclingCompleted(RecyclingEventArgs e) => this.RecyclingCompleted?.Invoke(this, e);
+
+        protected virtual void OnRecyclingStarted(RecyclingEventArgs e) => this.RecyclingStarted?.Invoke(this, e);
+
+        protected virtual void OnBrokerClientDisposed(BrokerClientDisposedEventArgs e) => this.BrokerClientDisposed?.Invoke(this, e);
 
         #endregion Protected Methods
 
@@ -218,40 +244,19 @@ namespace Distask.TaskDispatchers
         private IBrokerClient CreateBrokerClient(string brokerName, string brokerHost, int brokerPort)
         {
             var createdClient = new BrokerClient(brokerName, brokerHost, brokerPort, ChannelCredentials.Insecure, this.config);
-            createdClient.CircuitBroken += CreatedClient_CircuitBroken;
-            createdClient.CircuitHalfOpen += CreatedClient_CircuitHalfOpen;
-            createdClient.CircuitReset += CreatedClient_CircuitReset;
-
+            createdClient.Disposed += CreatedClient_Disposed;
             return createdClient;
         }
 
-        private void CreatedClient_CircuitBroken(object sender, BrokerClientCircuitBrokenEventArgs e)
+        private void CreatedClient_Disposed(object sender, BrokerClientDisposedEventArgs e)
         {
-
-        }
-
-        private void CreatedClient_CircuitHalfOpen(object sender, BrokerClientCircuitHalfOpenEventArgs e)
-        {
-
-        }
-
-        private void CreatedClient_CircuitReset(object sender, BrokerClientCircuitResetEventArgs e)
-        {
-
+            OnBrokerClientDisposed(e);
         }
 
         private void DisposeBrokerClient(IBrokerClient brokerClient)
         {
-            brokerClient.CircuitBroken -= this.CreatedClient_CircuitBroken;
-            brokerClient.CircuitHalfOpen -= this.CreatedClient_CircuitHalfOpen;
-            brokerClient.CircuitReset -= this.CreatedClient_CircuitReset;
-
             brokerClient.Dispose();
-        }
-
-        private void OnRetry(DelegateResult<DistaskResponse> delegateResult, int count)
-        {
-
+            brokerClient.Disposed -= CreatedClient_Disposed;
         }
 
         private void RecycleTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
@@ -261,15 +266,34 @@ namespace Distask.TaskDispatchers
                 try
                 {
                     timer.Enabled = false;
+                    this.OnRecyclingStarted(new RecyclingEventArgs());
+                    var recyclingClients = from p in this.brokerClients.SelectMany(c => c.Value)
+                                  where p.State.LifetimeState == BrokerClientLifetimeState.Alive &&
+                                  (DateTime.UtcNow - p.State.LastRoutedTime >= this.config.BrokerClientConfiguration.LastRoutedTimeThreshold)
+                                  select p;
+                    foreach(var client in recyclingClients)
+                    {
+                        client.State.LifetimeState = BrokerClientLifetimeState.Recycled;
+                        this.OnBrokerClientRecycled(new BrokerClientRecycledEventArgs(client));
+                    }
 
+                    var recycledClients = from p in this.brokerClients.SelectMany(c => c.Value)
+                                          where p.State.LifetimeState == BrokerClientLifetimeState.Recycled
+                                          select p;
+                    foreach(var client in recycledClients)
+                    {
+                        DisposeBrokerClient(client);
+                    }
                 }
                 finally
                 {
+                    this.OnRecyclingCompleted(new RecyclingEventArgs());
                     timer.Enabled = true;
                 }
             }
         }
 
         #endregion Private Methods
+
     }
 }

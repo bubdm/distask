@@ -58,14 +58,14 @@ namespace Distask.TaskDispatchers.AvailabilityCheckers
                 return false;
             }
 
-            return await IsAvailableInternalAsync(client);
+            return await IsAvailableCoreAsync(client);
         }
 
         #endregion Public Methods
 
         #region Protected Methods
 
-        protected abstract Task<bool> IsAvailableInternalAsync(IBrokerClient client);
+        protected abstract Task<bool> IsAvailableCoreAsync(IBrokerClient client);
 
         #endregion Protected Methods
     }

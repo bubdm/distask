@@ -34,8 +34,13 @@ namespace Distask.TaskDispatchers.Routing
             }
 
             var brokerClient = await this.GetRoutedClientCoreAsync(group, availableClients);
-            brokerClient.State.LastRoutedTime = DateTime.UtcNow;
-            return brokerClient;
+            if (brokerClient != null)
+            {
+                brokerClient.State.LastRoutedTime = DateTime.UtcNow;
+                return brokerClient;
+            }
+
+            return null;
         }
 
         protected abstract Task<IBrokerClient> GetRoutedClientCoreAsync(string group, IEnumerable<IBrokerClient> availableClients);

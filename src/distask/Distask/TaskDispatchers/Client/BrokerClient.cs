@@ -34,7 +34,7 @@ namespace Distask.TaskDispatchers.Client
         private readonly TaskDispatcherConfiguration config;
         private readonly Policy policy;
         private readonly DistaskServiceClient wrappedClient;
-        private bool disposedValue = false;
+        private bool disposed = false;
 
         #endregion Private Fields
 
@@ -79,6 +79,7 @@ namespace Distask.TaskDispatchers.Client
         public event EventHandler<BrokerClientCircuitBrokenEventArgs> CircuitBroken;
         public event EventHandler<BrokerClientCircuitHalfOpenEventArgs> CircuitHalfOpen;
         public event EventHandler<BrokerClientCircuitResetEventArgs> CircuitReset;
+        public event EventHandler<BrokerClientDisposedEventArgs> Disposed;
 
         #endregion Public Events
 
@@ -162,14 +163,18 @@ namespace Distask.TaskDispatchers.Client
 
         private void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!disposed)
             {
                 if (disposing)
                 {
                     channel.ShutdownAsync().Wait();
+                    this.State.ClearExceptionLogEntries();
+                    this.State.LifetimeState = BrokerClientLifetimeState.Disposed;
                 }
 
-                disposedValue = true;
+                OnDisposed(new BrokerClientDisposedEventArgs(Name, Host, Port));
+
+                disposed = true;
             }
         }
 
@@ -178,6 +183,8 @@ namespace Distask.TaskDispatchers.Client
         private void OnCircuitHalfOpen() => CircuitHalfOpen?.Invoke(this, new BrokerClientCircuitHalfOpenEventArgs());
 
         private void OnCircuitReset() => CircuitReset?.Invoke(this, new BrokerClientCircuitResetEventArgs());
+
+        private void OnDisposed(BrokerClientDisposedEventArgs e) => Disposed?.Invoke(this, e);
 
         #endregion Private Methods
 
