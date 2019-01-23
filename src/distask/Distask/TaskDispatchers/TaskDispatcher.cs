@@ -39,7 +39,6 @@ namespace Distask.TaskDispatchers
 
         private readonly IAvailabilityChecker availabilityChecker;
         private readonly ConcurrentDictionary<string, List<IBrokerClient>> brokerClients = new ConcurrentDictionary<string, List<IBrokerClient>>();
-        private readonly TaskDispatcherConfiguration config;
         private readonly ILogger logger;
         private readonly System.Timers.Timer recycleTimer;
         private readonly Server registrationServer;
@@ -55,18 +54,18 @@ namespace Distask.TaskDispatchers
             : this(TaskDispatcherConfiguration.AnyAddressDefaultPort, logger, router, availabilityChecker)
         { }
 
-        public TaskDispatcher(int port, ILogger<TaskDispatcher> logger, IRouter router,  IAvailabilityChecker availabilityChecker)
+        public TaskDispatcher(int port, ILogger<TaskDispatcher> logger, IRouter router, IAvailabilityChecker availabilityChecker)
             : this(TaskDispatcherConfiguration.AnyAddress(port), logger, router, availabilityChecker)
         { }
 
         public TaskDispatcher(TaskDispatcherConfiguration config, ILogger<TaskDispatcher> logger, IRouter router, IAvailabilityChecker availabilityChecker)
         {
-            this.config = config;
+            this.Configuration = config;
             this.logger = logger;
             this.router = router;
             this.availabilityChecker = availabilityChecker;
 
-            this.recycleTimer = new System.Timers.Timer(this.config.RecyclingConfiguration.Interval.TotalMilliseconds);
+            this.recycleTimer = new System.Timers.Timer(this.Configuration.RecyclingConfiguration.Interval.TotalMilliseconds);
             this.recycleTimer.Elapsed += RecycleTimer_Elapsed;
 
             retryPolicy = Policy.Handle<Exception>()
@@ -98,15 +97,23 @@ namespace Distask.TaskDispatchers
 
         #region Public Events
 
+        public event EventHandler<BrokerClientDisposedEventArgs> BrokerClientDisposed;
+
         public event EventHandler<BrokerClientRecycledEventArgs> BrokerClientRecycled;
 
         public event EventHandler<BrokerClientRegisteredEventArgs> BrokerClientRegistered;
+
         public event EventHandler<RecyclingEventArgs> RecyclingCompleted;
 
         public event EventHandler<RecyclingEventArgs> RecyclingStarted;
-        public event EventHandler<BrokerClientDisposedEventArgs> BrokerClientDisposed;
 
         #endregion Public Events
+
+        #region Public Properties
+
+        public TaskDispatcherConfiguration Configuration { get; }
+
+        #endregion Public Properties
 
         #region Public Methods
 
@@ -228,6 +235,8 @@ namespace Distask.TaskDispatchers
             }
         }
 
+        protected virtual void OnBrokerClientDisposed(BrokerClientDisposedEventArgs e) => this.BrokerClientDisposed?.Invoke(this, e);
+
         protected virtual void OnBrokerClientRecycled(BrokerClientRecycledEventArgs e) => this.BrokerClientRecycled?.Invoke(this, e);
 
         protected virtual void OnBrokerClientRegistered(BrokerClientRegisteredEventArgs e) => this.BrokerClientRegistered?.Invoke(this, e);
@@ -235,15 +244,13 @@ namespace Distask.TaskDispatchers
 
         protected virtual void OnRecyclingStarted(RecyclingEventArgs e) => this.RecyclingStarted?.Invoke(this, e);
 
-        protected virtual void OnBrokerClientDisposed(BrokerClientDisposedEventArgs e) => this.BrokerClientDisposed?.Invoke(this, e);
-
         #endregion Protected Methods
 
         #region Private Methods
 
         private IBrokerClient CreateBrokerClient(string brokerName, string brokerHost, int brokerPort)
         {
-            var createdClient = new BrokerClient(brokerName, brokerHost, brokerPort, ChannelCredentials.Insecure, this.config);
+            var createdClient = new BrokerClient(brokerName, brokerHost, brokerPort, ChannelCredentials.Insecure, this.Configuration);
             createdClient.Disposed += CreatedClient_Disposed;
             return createdClient;
         }
@@ -269,7 +276,7 @@ namespace Distask.TaskDispatchers
                     this.OnRecyclingStarted(new RecyclingEventArgs());
                     var recyclingClients = from p in this.brokerClients.SelectMany(c => c.Value)
                                   where p.State.LifetimeState == BrokerClientLifetimeState.Alive &&
-                                  (DateTime.UtcNow - p.State.LastRoutedTime >= this.config.BrokerClientConfiguration.LastRoutedTimeThreshold)
+                                  (DateTime.UtcNow - p.State.LastRoutedTime >= this.Configuration.BrokerClientConfiguration.LastRoutedTimeThreshold)
                                   select p;
                     foreach(var client in recyclingClients)
                     {

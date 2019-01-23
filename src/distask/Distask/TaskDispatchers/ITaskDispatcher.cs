@@ -1,4 +1,5 @@
 ﻿using Distask.TaskDispatchers.Client;
+using Distask.TaskDispatchers.Config;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -18,6 +19,8 @@ namespace Distask.TaskDispatchers
         event EventHandler<RecyclingEventArgs> RecyclingStarted;
 
         event EventHandler<RecyclingEventArgs> RecyclingCompleted;
+
+        TaskDispatcherConfiguration Configuration { get; }
 
         Task<ResponseMessage> DispatchAsync(RequestMessage requestMessage, string group = null, CancellationToken cancellationToken = default(CancellationToken));
     }

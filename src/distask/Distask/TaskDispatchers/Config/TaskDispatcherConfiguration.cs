@@ -18,10 +18,15 @@ namespace Distask.TaskDispatchers.Config
         #region Public Fields
 
         public static readonly TaskDispatcherConfiguration AnyAddressDefaultPort = new TaskDispatcherConfiguration("0.0.0.0", Utils.Constants.TaskDispatcherDefaultPort);
+        public static readonly TaskDispatcherConfiguration Default = new TaskDispatcherConfiguration();
 
         #endregion Public Fields
 
         #region Public Constructors
+
+        public TaskDispatcherConfiguration()
+            : this("0.0.0.0", Utils.Constants.TaskDispatcherDefaultPort)
+        { }
 
         public TaskDispatcherConfiguration(string host, int port)
             : this(host, port, RecyclingConfiguration.Default, BrokerClientConfiguration.Default)
