@@ -32,7 +32,7 @@ namespace Distask.ConsoleApp
 
             var taskDispatcherConfig = new TaskDispatcherConfiguration(new RecyclingConfiguration("0:0:5"), BrokerClientConfiguration.Default);
             var serviceProvider = serviceCollection
-                .AddScoped<IRouter, RandomizedRouter>()
+                .AddScoped<IRouter, RoundRobinRouter>()
                 .AddScoped(s => taskDispatcherConfig)
                 .AddScoped<IAvailabilityChecker>(s => new HealthLevelChecker(s.GetService<ILogger<HealthLevelChecker>>(), BrokerClientHealthLevel.Excellent))
                 .AddScoped<ITaskDispatcher, TaskDispatcher>()
@@ -52,7 +52,7 @@ namespace Distask.ConsoleApp
                 {
                     while (!Console.KeyAvailable)
                     {
-                        // Thread.Sleep(200);
+                        Thread.Sleep(1000);
                         try
                         {
                             var x = rand.Next(100);

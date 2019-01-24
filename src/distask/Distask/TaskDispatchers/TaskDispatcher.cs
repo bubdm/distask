@@ -133,6 +133,8 @@ namespace Distask.TaskDispatchers
                             }
                             catch (BrokenCircuitException bce) when (bce.InnerException != null && bce.InnerException is RpcException rpcEx && rpcEx.StatusCode == Grpc.Core.StatusCode.Unavailable)
                             {
+                                // If the exception was RpcException and the status code was Unavailable, we assume that
+                                // the connection to the broker has lost. As a result, the broker client will be recycled.
                                 client.State.LifetimeState = BrokerClientLifetimeState.Recycled;
                                 this.OnBrokerClientRecycled(new BrokerClientRecycledEventArgs(client));
 
