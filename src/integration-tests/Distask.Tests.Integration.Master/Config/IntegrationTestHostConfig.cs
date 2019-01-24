@@ -33,7 +33,7 @@ namespace Distask.Tests.Integration.Master.Config
         /// <param name="numOfThreads">The number of threads.</param>
         public IntegrationTestHostConfig(int numOfThreads)
         {
-            this.NumberOfThreads = numOfThreads;
+            this.NumberOfTasks = numOfThreads;
         }
 
         #endregion Public Constructors
@@ -54,7 +54,7 @@ namespace Distask.Tests.Integration.Master.Config
         /// <value>
         /// The number of threads.
         /// </value>
-        public int NumberOfThreads { get; set; }
+        public int NumberOfTasks { get; set; }
 
         /// <summary>
         /// Gets or sets the router.

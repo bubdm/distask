@@ -17,7 +17,7 @@ namespace Distask.Tests.Integration.Master
 
         private readonly ILogger logger;
         private readonly ITaskDispatcher taskDispatcher;
-        private readonly List<Thread> threads = new List<Thread>();
+        private readonly List<Task> tasks = new List<Task>();
 
         #endregion Private Fields
 
@@ -52,35 +52,32 @@ namespace Distask.Tests.Integration.Master
             logger.LogInformation("TaskDispatcher configuration:");
             logger.LogInformation(ConvertToFormattedJson(this.taskDispatcher.Configuration));
 
-            for (var idx = 0; idx < this.options.NumberOfThreads; idx++)
+            for (var idx = 0; idx < this.options.NumberOfTasks; idx++)
             {
-                var thread = new Thread(ThreadProc);
-                thread.Start(new ThreadState { CancellationToken = cancellationToken, ThreadIndex = idx });
-                threads.Add(thread);
+                var task = Task.Factory.StartNew(async (i) =>
+                {
+                    while (true)
+                    {
+                        if (cancellationToken.IsCancellationRequested)
+                        {
+                            cancellationToken.ThrowIfCancellationRequested();
+                        }
+
+                        await Task.Delay(500, cancellationToken);
+                        logger.LogInformation(i.ToString());
+                    }
+                }, idx, cancellationToken);
+                tasks.Add(task);
             }
 
             return Task.CompletedTask;
         }
 
-        private void ThreadProc(object state)
-        {
-            var threadState = (ThreadState) state;
-            while (true)
-            {
-                if (threadState.CancellationToken.IsCancellationRequested)
-                {
-                    break;
-                }
-
-                logger.LogInformation($"{threadState.ThreadIndex}");
-                Thread.Sleep(500);
-            }
-        }
-
         public override Task StopAsync(CancellationToken cancellationToken)
         {
             // Stops the integration test host.
-            threads.ForEach(t => t.Join(TimeSpan.FromSeconds(10)));
+            Task.WaitAll(tasks.ToArray(), 15000, cancellationToken);
+
             logger.LogInformation("Integration Test Host stopped successfully.");
             return Task.CompletedTask;
         }
@@ -98,6 +95,8 @@ namespace Distask.Tests.Integration.Master
                 this.taskDispatcher.BrokerClientRegistered -= TaskDispatcher_BrokerClientRegistered;
 
                 this.taskDispatcher.Dispose();
+
+                logger.LogInformation("Integration Test Host disposed successfully.");
             }
 
             base.Dispose(disposing);
@@ -112,12 +111,12 @@ namespace Distask.Tests.Integration.Master
 
         private void TaskDispatcher_BrokerClientDisposed(object sender, TaskDispatchers.Client.BrokerClientDisposedEventArgs e)
         {
-            
+
         }
 
         private void TaskDispatcher_BrokerClientRecycled(object sender, TaskDispatchers.Client.BrokerClientRecycledEventArgs e)
         {
-            
+
         }
 
         private void TaskDispatcher_BrokerClientRegistered(object sender, TaskDispatchers.Client.BrokerClientRegisteredEventArgs e)
@@ -126,12 +125,5 @@ namespace Distask.Tests.Integration.Master
         }
 
         #endregion Private Methods
-
-        class ThreadState
-        {
-            public CancellationToken CancellationToken { get; set; }
-
-            public int ThreadIndex { get; set; }
-        }
     }
 }
