@@ -29,6 +29,7 @@ using Distask.TaskDispatchers.Client;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using Polly.CircuitBreaker;
+using Distask.Brokers;
 
 namespace Distask.TaskDispatchers
 {
@@ -69,7 +70,8 @@ namespace Distask.TaskDispatchers
             this.recycleTimer.Elapsed += RecycleTimer_Elapsed;
 
             retryPolicy = Policy.Handle<Exception>()
-                .OrResult<DistaskResponse>(r => r.Status != Contracts.StatusCode.Success)
+                .OrResult<DistaskResponse>(r => r.Status != Contracts.StatusCode.Success && 
+                    !string.Equals(r.ErrorType, typeof(ExecuteException).Name))
                 .RetryAsync(config.BrokerClientConfiguration.RerouteRetryCount);
 
             this.registrationServer = new Server
@@ -117,6 +119,9 @@ namespace Distask.TaskDispatchers
 
         #region Public Methods
 
+        public Task<ResponseMessage> DispatchAsync(string taskName, string group = null, CancellationToken cancellationToken = default(CancellationToken)) 
+            => DispatchAsync(new RequestMessage(taskName, new string[] { }), group, cancellationToken);
+
         public async Task<ResponseMessage> DispatchAsync(RequestMessage requestMessage,
                     string group = null,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -126,17 +131,17 @@ namespace Distask.TaskDispatchers
             {
                 try
                 {
-                    var result = await this.retryPolicy.ExecuteAsync(async (ct) =>
+                    var result = await this.retryPolicy.ExecuteAsync(async (localCancellationToken) =>
                     {
                         var client = await router.GetRoutedClientAsync(group, clients, this.availabilityChecker);
                         if (client != null)
                         {
                             try
                             {
-                                var parameters = new RepeatedField<string> { requestMessage.Parameters };
+                                // var parameters = new RepeatedField<string> { requestMessage.Parameters };
                                 var distaskRequest = new DistaskRequest { TaskName = requestMessage.TaskName };
                                 distaskRequest.Parameters.AddRange(requestMessage.Parameters);
-                                return await client.ExecuteAsync(distaskRequest, ct);
+                                return await client.ExecuteAsync(distaskRequest, localCancellationToken);
                             }
                             catch (BrokenCircuitException bce) when (bce.InnerException != null && bce.InnerException is RpcException rpcEx && rpcEx.StatusCode == Grpc.Core.StatusCode.Unavailable)
                             {
@@ -167,6 +172,9 @@ namespace Distask.TaskDispatchers
 
             throw new NoAvailableClientException(group ?? Utils.Constants.DefaultGroupName);
         }
+
+        public Task<ResponseMessage> DispatchAsync(string taskName, IEnumerable<string> parameters, string group = null, CancellationToken cancellationToken = default(CancellationToken))
+            => DispatchAsync(new RequestMessage(taskName, parameters), group, cancellationToken);
 
         public void Dispose()
         {
@@ -303,6 +311,5 @@ namespace Distask.TaskDispatchers
         }
 
         #endregion Private Methods
-
     }
 }

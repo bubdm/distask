@@ -2,6 +2,7 @@
 using Distask.TaskDispatchers.Config;
 using Distask.Tests.Integration.Master.Config;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -16,14 +17,18 @@ namespace Distask.Tests.Integration.Master
         #region Private Fields
 
         private readonly ILogger logger;
+        private readonly CancellationTokenSource taskCancellationTokenSource = new CancellationTokenSource();
         private readonly ITaskDispatcher taskDispatcher;
         private readonly List<Task> tasks = new List<Task>();
+        private int startedState = 0;
 
         #endregion Private Fields
 
         #region Public Constructors
 
-        public IntegrationTestHost(ITaskDispatcher taskDispatcher, ILogger<IntegrationTestHost> logger, IConfiguration configuration) : base(configuration)
+        public IntegrationTestHost(ITaskDispatcher taskDispatcher, 
+            ILogger<IntegrationTestHost> logger,
+            IApplicationLifetime applicationLifetime, IConfiguration configuration) : base(applicationLifetime, configuration)
         {
             this.logger = logger;
             this.taskDispatcher = taskDispatcher;
@@ -54,19 +59,37 @@ namespace Distask.Tests.Integration.Master
 
             for (var idx = 0; idx < this.options.NumberOfTasks; idx++)
             {
-                var task = Task.Factory.StartNew(async (i) =>
+                var taskId = idx;
+                var task = Task.Run(async () =>
                 {
-                    while (true)
+                    while (!taskCancellationTokenSource.IsCancellationRequested)
                     {
-                        if (cancellationToken.IsCancellationRequested)
+                        try
                         {
-                            cancellationToken.ThrowIfCancellationRequested();
+                            var result = await taskDispatcher.DispatchAsync("test", new[] { taskId.ToString() }, cancellationToken: taskCancellationTokenSource.Token);
+                            // Console.WriteLine(result.Result);
+                        }
+                        catch (NoAvailableClientException) when (startedState == 0) 
+                        {
+                            // When current startedState equals to 0, means the integration test host has just started
+                            // and there is no broker registered to the host. In this case, we ignore the NoAvailableClientException.
+                        }
+                        catch(NoAvailableClientException)
+                        {
+                            // But when startedState doesn't equal to 0, means once there was a broker registered to the host,
+                            // the NoAvailableClientException is caused by some of the broker has dropped the connection, in this case,
+                            // the error should be logged.
+                            logger.LogError("No available client.");
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogError("Error");
                         }
 
-                        await Task.Delay(500, cancellationToken);
-                        logger.LogInformation(i.ToString());
+                        await Task.Delay(1);
                     }
-                }, idx, cancellationToken);
+                });
+
                 tasks.Add(task);
             }
 
@@ -75,10 +98,16 @@ namespace Distask.Tests.Integration.Master
 
         public override Task StopAsync(CancellationToken cancellationToken)
         {
-            // Stops the integration test host.
-            Task.WaitAll(tasks.ToArray(), 15000, cancellationToken);
+            try
+            {
+                Task.WaitAll(this.tasks.ToArray(), 5000);
+                logger.LogInformation("Integration Test Host stopped successfully.");
+            }
+            catch(Exception ex)
+            {
+                logger.LogError(ex, "Error ocurred when stopping the integration test host.");
+            }
 
-            logger.LogInformation("Integration Test Host stopped successfully.");
             return Task.CompletedTask;
         }
 
@@ -102,13 +131,17 @@ namespace Distask.Tests.Integration.Master
             base.Dispose(disposing);
         }
 
+        protected override void OnHostStopping()
+        {
+            this.taskCancellationTokenSource.Cancel();
+        }
+
         #endregion Protected Methods
 
         #region Private Methods
 
         private static string ConvertToFormattedJson(object obj)
-            => JsonConvert.SerializeObject(obj, Formatting.Indented);
-
+                    => JsonConvert.SerializeObject(obj, Formatting.Indented);
         private void TaskDispatcher_BrokerClientDisposed(object sender, TaskDispatchers.Client.BrokerClientDisposedEventArgs e)
         {
 
@@ -121,9 +154,11 @@ namespace Distask.Tests.Integration.Master
 
         private void TaskDispatcher_BrokerClientRegistered(object sender, TaskDispatchers.Client.BrokerClientRegisteredEventArgs e)
         {
-
+            Interlocked.Exchange(ref this.startedState, 1);
+            logger.LogDebug($"Broker has registered: {e.Name}.");
         }
 
         #endregion Private Methods
+
     }
 }

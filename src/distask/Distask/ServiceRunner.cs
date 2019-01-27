@@ -61,12 +61,15 @@ namespace Distask
                 .ConfigureServices(this.ConfigureServices)
                 .ConfigureLogging(this.ConfigureLogging);
 
-            await hostBuilder.RunConsoleAsync();
+            await ConfigureAdditionalFeatures(hostBuilder).RunConsoleAsync();
         }
 
         #endregion Public Methods
 
         #region Protected Methods
+
+        protected virtual IHostBuilder ConfigureAdditionalFeatures(IHostBuilder hostBuilder)
+            => hostBuilder;
 
         /// <summary>
         /// Configures the application configuration.

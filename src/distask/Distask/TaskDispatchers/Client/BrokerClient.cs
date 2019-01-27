@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using static Distask.Contracts.DistaskService;
+using Distask.Brokers;
 
 namespace Distask.TaskDispatchers.Client
 {
@@ -121,11 +122,15 @@ namespace Distask.TaskDispatchers.Client
             this.State.LastRequestTime = DateTime.UtcNow;
             try
             {
-                return await policy.ExecuteAsync(async ct =>
+                return await policy.ExecuteAsync(async localCancellationToken =>
                 {
                     this.State.IncreaseForwardedRequests();
-                    var result = await wrappedClient.ExecuteAsync(request, cancellationToken: ct);
-                    this.State.LastSuccessRequestTime = DateTime.UtcNow;
+                    var result = await wrappedClient.ExecuteAsync(request, cancellationToken: localCancellationToken);
+                    if (result.Status == Contracts.StatusCode.Success)
+                    {
+                        this.State.LastSuccessRequestTime = DateTime.UtcNow;
+                    }
+
                     return result;
                 }, cancellationToken);
             }

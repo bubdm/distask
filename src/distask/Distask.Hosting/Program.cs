@@ -13,19 +13,27 @@ namespace Distask.Hosting
 {
     class SayHelloTask : BrokerTask
     {
+        public SayHelloTask(ILogger<SayHelloTask> logger)
+            : base(logger)
+        { }
+
         public override string Name => "say-hello";
 
-        public override Task<DistaskResponse> ExecuteAsync(IEnumerable<string> parameters, CancellationToken cancellationToken = default)
+        protected override Task<DistaskResponse> ExecuteInternalAsync(IEnumerable<string> parameters, CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(DistaskResponse.Success("Hello World!"));
+            throw new ExecuteException("test");
         }
     }
 
     class Add2Task : BrokerTask
     {
+        public Add2Task(ILogger<Add2Task> logger)
+            : base(logger)
+        { }
+
         public override string Name => "add";
 
-        public override Task<DistaskResponse> ExecuteAsync(IEnumerable<string> parameters, CancellationToken cancellationToken = default)
+        protected override Task<DistaskResponse> ExecuteInternalAsync(IEnumerable<string> parameters, CancellationToken cancellationToken = default)
         {
             var p = parameters.ToList();
             var x = Convert.ToInt32(p[0]);

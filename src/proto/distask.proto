@@ -17,6 +17,8 @@ message DistaskResponse {
     string result = 2;
     string errorMessage = 3;
     string stackTrace = 4;
+    string errorType = 5;
+    string errorDetails = 6;
 };
 
 message RegistrationRequest {

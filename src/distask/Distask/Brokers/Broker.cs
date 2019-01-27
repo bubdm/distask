@@ -41,9 +41,14 @@ namespace Distask.Brokers
             {
                 return await task.ExecuteAsync(request.Parameters.ToList(), context.CancellationToken);
             }
-            catch(Exception ex)
+            catch (ExecuteException btException)
             {
-                this.logger.LogError(ex, $"Error occurred while executing the task '{task.Name}'.");
+                logger.LogWarning(btException, $"Failed to execute task '{task.Name}'.");
+                return DistaskResponse.Exception(btException);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"General exception occurred when executing task '{task.Name}'.");
                 return DistaskResponse.Exception(ex);
             }
         }

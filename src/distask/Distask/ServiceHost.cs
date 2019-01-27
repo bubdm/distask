@@ -11,6 +11,7 @@
  * https://github.com/daxnet/distask/blob/master/LICENSE
  ****************************************************************************/
 
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,13 +24,17 @@ namespace Distask
     /// <seealso cref="Distask.IServiceHost" />
     public abstract class ServiceHost : IServiceHost
     {
+
         #region Protected Constructors
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ServiceHost"/> class.
         /// </summary>
-        protected ServiceHost()
+        protected ServiceHost(IApplicationLifetime applicationLifetime)
         {
+            applicationLifetime.ApplicationStarted.Register(this.OnHostStarted);
+            applicationLifetime.ApplicationStopped.Register(this.OnHostStopped);
+            applicationLifetime.ApplicationStopping.Register(this.OnHostStopping);
         }
 
         #endregion Protected Constructors
@@ -80,6 +85,21 @@ namespace Distask
         /// </summary>
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         protected virtual void Dispose(bool disposing) { }
+
+        /// <summary>
+        /// Hook method that triggers when the application host has started.
+        /// </summary>
+        protected virtual void OnHostStarted() { }
+
+        /// <summary>
+        /// Hook method that triggers when the application host has stopped.
+        /// </summary>
+        protected virtual void OnHostStopped() { }
+
+        /// <summary>
+        /// Hook method that triggers when the application host is about to be stopped.
+        /// </summary>
+        protected virtual void OnHostStopping() { }
 
         #endregion Protected Methods
     }

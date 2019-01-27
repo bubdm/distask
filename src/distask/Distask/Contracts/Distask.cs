@@ -26,27 +26,28 @@ namespace Distask.Contracts {
           string.Concat(
             "Cg1kaXN0YXNrLnByb3RvEhFkaXN0YXNrLmNvbnRyYWN0cyI2Cg5EaXN0YXNr",
             "UmVxdWVzdBIQCgh0YXNrTmFtZRgBIAEoCRISCgpwYXJhbWV0ZXJzGAIgAygJ",
-            "InoKD0Rpc3Rhc2tSZXNwb25zZRItCgZzdGF0dXMYASABKA4yHS5kaXN0YXNr",
-            "LmNvbnRyYWN0cy5TdGF0dXNDb2RlEg4KBnJlc3VsdBgCIAEoCRIUCgxlcnJv",
-            "ck1lc3NhZ2UYAyABKAkSEgoKc3RhY2tUcmFjZRgEIAEoCSJOChNSZWdpc3Ry",
-            "YXRpb25SZXF1ZXN0EgwKBG5hbWUYASABKAkSDQoFZ3JvdXAYAiABKAkSDAoE",
-            "aG9zdBgDIAEoCRIMCgRwb3J0GAQgASgFIt0BChRSZWdpc3RyYXRpb25SZXNw",
-            "b25zZRItCgZzdGF0dXMYASABKA4yHS5kaXN0YXNrLmNvbnRyYWN0cy5TdGF0",
-            "dXNDb2RlEhUKDXJlamVjdE1lc3NhZ2UYAiABKAkSRAoGcmVhc29uGAMgASgO",
-            "MjQuZGlzdGFzay5jb250cmFjdHMuUmVnaXN0cmF0aW9uUmVzcG9uc2UuUmVq",
-            "ZWN0UmVhc29uIjkKDFJlamVjdFJlYXNvbhIICgROT05FEAASCwoHR0VORVJB",
-            "TBABEhIKDkFMUkVBRFlfRVhJU1RTEAIqMQoKU3RhdHVzQ29kZRILCgdTVUND",
-            "RVNTEAASCwoHV0FSTklORxABEgkKBUVSUk9SEAIyZAoORGlzdGFza1NlcnZp",
-            "Y2USUgoHRXhlY3V0ZRIhLmRpc3Rhc2suY29udHJhY3RzLkRpc3Rhc2tSZXF1",
-            "ZXN0GiIuZGlzdGFzay5jb250cmFjdHMuRGlzdGFza1Jlc3BvbnNlIgAyewoa",
-            "RGlzdGFza1JlZ2lzdHJhdGlvblNlcnZpY2USXQoIUmVnaXN0ZXISJi5kaXN0",
-            "YXNrLmNvbnRyYWN0cy5SZWdpc3RyYXRpb25SZXF1ZXN0GicuZGlzdGFzay5j",
-            "b250cmFjdHMuUmVnaXN0cmF0aW9uUmVzcG9uc2UiAGIGcHJvdG8z"));
+            "IqMBCg9EaXN0YXNrUmVzcG9uc2USLQoGc3RhdHVzGAEgASgOMh0uZGlzdGFz",
+            "ay5jb250cmFjdHMuU3RhdHVzQ29kZRIOCgZyZXN1bHQYAiABKAkSFAoMZXJy",
+            "b3JNZXNzYWdlGAMgASgJEhIKCnN0YWNrVHJhY2UYBCABKAkSEQoJZXJyb3JU",
+            "eXBlGAUgASgJEhQKDGVycm9yRGV0YWlscxgGIAEoCSJOChNSZWdpc3RyYXRp",
+            "b25SZXF1ZXN0EgwKBG5hbWUYASABKAkSDQoFZ3JvdXAYAiABKAkSDAoEaG9z",
+            "dBgDIAEoCRIMCgRwb3J0GAQgASgFIt0BChRSZWdpc3RyYXRpb25SZXNwb25z",
+            "ZRItCgZzdGF0dXMYASABKA4yHS5kaXN0YXNrLmNvbnRyYWN0cy5TdGF0dXND",
+            "b2RlEhUKDXJlamVjdE1lc3NhZ2UYAiABKAkSRAoGcmVhc29uGAMgASgOMjQu",
+            "ZGlzdGFzay5jb250cmFjdHMuUmVnaXN0cmF0aW9uUmVzcG9uc2UuUmVqZWN0",
+            "UmVhc29uIjkKDFJlamVjdFJlYXNvbhIICgROT05FEAASCwoHR0VORVJBTBAB",
+            "EhIKDkFMUkVBRFlfRVhJU1RTEAIqMQoKU3RhdHVzQ29kZRILCgdTVUNDRVNT",
+            "EAASCwoHV0FSTklORxABEgkKBUVSUk9SEAIyZAoORGlzdGFza1NlcnZpY2US",
+            "UgoHRXhlY3V0ZRIhLmRpc3Rhc2suY29udHJhY3RzLkRpc3Rhc2tSZXF1ZXN0",
+            "GiIuZGlzdGFzay5jb250cmFjdHMuRGlzdGFza1Jlc3BvbnNlIgAyewoaRGlz",
+            "dGFza1JlZ2lzdHJhdGlvblNlcnZpY2USXQoIUmVnaXN0ZXISJi5kaXN0YXNr",
+            "LmNvbnRyYWN0cy5SZWdpc3RyYXRpb25SZXF1ZXN0GicuZGlzdGFzay5jb250",
+            "cmFjdHMuUmVnaXN0cmF0aW9uUmVzcG9uc2UiAGIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Distask.Contracts.StatusCode), }, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Distask.Contracts.DistaskRequest), global::Distask.Contracts.DistaskRequest.Parser, new[]{ "TaskName", "Parameters" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Distask.Contracts.DistaskResponse), global::Distask.Contracts.DistaskResponse.Parser, new[]{ "Status", "Result", "ErrorMessage", "StackTrace" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Distask.Contracts.DistaskResponse), global::Distask.Contracts.DistaskResponse.Parser, new[]{ "Status", "Result", "ErrorMessage", "StackTrace", "ErrorType", "ErrorDetails" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Distask.Contracts.RegistrationRequest), global::Distask.Contracts.RegistrationRequest.Parser, new[]{ "Name", "Group", "Host", "Port" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Distask.Contracts.RegistrationResponse), global::Distask.Contracts.RegistrationResponse.Parser, new[]{ "Status", "RejectMessage", "Reason" }, null, new[]{ typeof(global::Distask.Contracts.RegistrationResponse.Types.RejectReason) }, null)
           }));
@@ -242,6 +243,8 @@ namespace Distask.Contracts {
       result_ = other.result_;
       errorMessage_ = other.errorMessage_;
       stackTrace_ = other.stackTrace_;
+      errorType_ = other.errorType_;
+      errorDetails_ = other.errorDetails_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -294,6 +297,28 @@ namespace Distask.Contracts {
       }
     }
 
+    /// <summary>Field number for the "errorType" field.</summary>
+    public const int ErrorTypeFieldNumber = 5;
+    private string errorType_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string ErrorType {
+      get { return errorType_; }
+      set {
+        errorType_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "errorDetails" field.</summary>
+    public const int ErrorDetailsFieldNumber = 6;
+    private string errorDetails_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string ErrorDetails {
+      get { return errorDetails_; }
+      set {
+        errorDetails_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as DistaskResponse);
@@ -311,6 +336,8 @@ namespace Distask.Contracts {
       if (Result != other.Result) return false;
       if (ErrorMessage != other.ErrorMessage) return false;
       if (StackTrace != other.StackTrace) return false;
+      if (ErrorType != other.ErrorType) return false;
+      if (ErrorDetails != other.ErrorDetails) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -321,6 +348,8 @@ namespace Distask.Contracts {
       if (Result.Length != 0) hash ^= Result.GetHashCode();
       if (ErrorMessage.Length != 0) hash ^= ErrorMessage.GetHashCode();
       if (StackTrace.Length != 0) hash ^= StackTrace.GetHashCode();
+      if (ErrorType.Length != 0) hash ^= ErrorType.GetHashCode();
+      if (ErrorDetails.Length != 0) hash ^= ErrorDetails.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -350,6 +379,14 @@ namespace Distask.Contracts {
         output.WriteRawTag(34);
         output.WriteString(StackTrace);
       }
+      if (ErrorType.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(ErrorType);
+      }
+      if (ErrorDetails.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteString(ErrorDetails);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -369,6 +406,12 @@ namespace Distask.Contracts {
       }
       if (StackTrace.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(StackTrace);
+      }
+      if (ErrorType.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(ErrorType);
+      }
+      if (ErrorDetails.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(ErrorDetails);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -392,6 +435,12 @@ namespace Distask.Contracts {
       }
       if (other.StackTrace.Length != 0) {
         StackTrace = other.StackTrace;
+      }
+      if (other.ErrorType.Length != 0) {
+        ErrorType = other.ErrorType;
+      }
+      if (other.ErrorDetails.Length != 0) {
+        ErrorDetails = other.ErrorDetails;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -418,6 +467,14 @@ namespace Distask.Contracts {
           }
           case 34: {
             StackTrace = input.ReadString();
+            break;
+          }
+          case 42: {
+            ErrorType = input.ReadString();
+            break;
+          }
+          case 50: {
+            ErrorDetails = input.ReadString();
             break;
           }
         }

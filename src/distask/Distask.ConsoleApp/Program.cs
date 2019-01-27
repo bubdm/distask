@@ -48,6 +48,12 @@ namespace Distask.ConsoleApp
                 distributor.RecyclingStarted += Distributor_RecyclingStarted;
                 distributor.RecyclingCompleted += Distributor_RecyclingCompleted;
 
+
+                //Console.Write("Press ENTER to continue...");
+                //Console.ReadLine();
+
+                //var result = distributor.DispatchAsync("say-hello").Result;
+
                 do
                 {
                     while (!Console.KeyAvailable)
@@ -74,6 +80,10 @@ namespace Distask.ConsoleApp
                     }
 
                 } while (Console.ReadKey(true).Key != ConsoleKey.Enter);
+
+
+
+
 
                 //var timer = new System.Timers.Timer
                 //{

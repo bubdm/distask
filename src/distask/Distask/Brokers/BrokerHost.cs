@@ -15,6 +15,7 @@ using Distask.Brokers.Config;
 using Distask.Contracts;
 using Grpc.Core;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
@@ -35,8 +36,8 @@ namespace Distask.Brokers
 
         #region Public Constructors
 
-        public BrokerHost(Broker broker, ILogger<BrokerHost> logger, IConfiguration configuration)
-            : base(configuration)
+        public BrokerHost(Broker broker, ILogger<BrokerHost> logger, IApplicationLifetime applicationLifetime, IConfiguration configuration)
+            : base(applicationLifetime, configuration)
         {
             this.broker = broker;
             this.logger = logger;

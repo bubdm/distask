@@ -1,4 +1,5 @@
 ﻿using System;
+using Serilog;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text;
@@ -34,6 +35,11 @@ namespace Distask.Tests.Integration.Master
         #endregion Protected Properties
 
         #region Protected Methods
+
+        protected override void ConfigureLogging(HostBuilderContext context, ILoggingBuilder logging)
+        {
+            base.ConfigureLogging(context, logging);
+        }
 
         protected override void ConfigureServices(HostBuilderContext context, IServiceCollection services)
         {

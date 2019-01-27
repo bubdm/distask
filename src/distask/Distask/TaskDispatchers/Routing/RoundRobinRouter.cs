@@ -11,7 +11,7 @@ namespace Distask.TaskDispatchers.Routing
 {
     public sealed class RoundRobinRouter : Router
     {
-        private readonly Carrousel car = new Carrousel();
+        private readonly Carrousel carrousel = new Carrousel();
 
         public RoundRobinRouter(ILogger<RoundRobinRouter> logger) : base(logger)
         {
@@ -25,7 +25,7 @@ namespace Distask.TaskDispatchers.Routing
                 return null;
             }
 
-            return Task.FromResult(numOfClients == 1 ? availableClients.First() : availableClients.ElementAt(car.Next(numOfClients)));
+            return Task.FromResult(numOfClients == 1 ? availableClients.First() : availableClients.ElementAt(carrousel.Next(numOfClients)));
         }
 
         private class Carrousel
