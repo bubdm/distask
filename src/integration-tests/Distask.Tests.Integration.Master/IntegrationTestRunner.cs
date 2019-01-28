@@ -68,10 +68,7 @@ namespace Distask.Tests.Integration.Master
         {
             return hostBuilder.UseSerilog((hostBuilderConfig, loggerConfig) =>
             {
-                loggerConfig.MinimumLevel.Debug()
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-                .Enrich.FromLogContext()
-                .WriteTo.Console();
+                loggerConfig.ReadFrom.Configuration(hostBuilderConfig.Configuration);
             });
         }
         #endregion Protected Methods

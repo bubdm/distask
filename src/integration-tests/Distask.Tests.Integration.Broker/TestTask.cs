@@ -20,13 +20,15 @@ namespace Distask.Tests.Integration.Broker
 
         protected override Task<DistaskResponse> ExecuteInternalAsync(IEnumerable<string> parameters, CancellationToken cancellationToken = default)
         {
-            var taskIndex = parameters.FirstOrDefault();
-            if (string.IsNullOrEmpty(taskIndex))
-            {
-                throw new ArgumentNullException(nameof(parameters));
-            }
+            //var taskIndex = parameters.FirstOrDefault();
+            //if (string.IsNullOrEmpty(taskIndex))
+            //{
+            //    throw new ExecuteException(nameof(parameters));
+            //}
 
-            return Task.FromResult(DistaskResponse.Success($"Response to thread {taskIndex}."));
+            //return Task.FromResult(DistaskResponse.Success($"Response to thread {taskIndex}."));
+
+            throw new ExecuteException(nameof(parameters));
         }
     }
 }

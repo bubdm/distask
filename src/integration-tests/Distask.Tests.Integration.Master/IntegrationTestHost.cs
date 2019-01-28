@@ -68,6 +68,7 @@ namespace Distask.Tests.Integration.Master
                         {
                             var result = await taskDispatcher.DispatchAsync("test", new[] { taskId.ToString() }, cancellationToken: taskCancellationTokenSource.Token);
                             // Console.WriteLine(result.Result);
+                            logger.LogInformation("The result is: {0}.", result);
                         }
                         catch (NoAvailableClientException) when (startedState == 0) 
                         {
@@ -81,9 +82,9 @@ namespace Distask.Tests.Integration.Master
                             // the error should be logged.
                             logger.LogError("No available client.");
                         }
-                        catch (Exception)
+                        catch (Exception ex)
                         {
-                            logger.LogError("Error");
+                            logger.LogError(ex, "Error");
                         }
 
                         await Task.Delay(1);

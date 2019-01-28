@@ -138,7 +138,6 @@ namespace Distask.TaskDispatchers
                         {
                             try
                             {
-                                // var parameters = new RepeatedField<string> { requestMessage.Parameters };
                                 var distaskRequest = new DistaskRequest { TaskName = requestMessage.TaskName };
                                 distaskRequest.Parameters.AddRange(requestMessage.Parameters);
                                 return await client.ExecuteAsync(distaskRequest, localCancellationToken);
