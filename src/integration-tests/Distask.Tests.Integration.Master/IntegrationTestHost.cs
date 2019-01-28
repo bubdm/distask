@@ -81,7 +81,7 @@ namespace Distask.Tests.Integration.Master
                             // the error should be logged.
                             logger.LogError("No available client.");
                         }
-                        catch (Exception ex)
+                        catch (Exception)
                         {
                             logger.LogError("Error");
                         }

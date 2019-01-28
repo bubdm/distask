@@ -15,6 +15,7 @@ using Distask.TaskDispatchers.Client;
 using Distask.Tests.Integration.Master.Config;
 using System.Reflection;
 using Newtonsoft.Json;
+using Serilog.Events;
 
 namespace Distask.Tests.Integration.Master
 {
@@ -38,7 +39,7 @@ namespace Distask.Tests.Integration.Master
 
         protected override void ConfigureLogging(HostBuilderContext context, ILoggingBuilder logging)
         {
-            base.ConfigureLogging(context, logging);
+            // Leave this method blank to remove any logging configuration from base implementation.
         }
 
         protected override void ConfigureServices(HostBuilderContext context, IServiceCollection services)
@@ -47,7 +48,7 @@ namespace Distask.Tests.Integration.Master
             base.ConfigureServices(context, services);
 
             var config = context.Configuration;
-            var taskDispatcherConfig = config.GetSection("TaskDispatcher")?.Get<TaskDispatcherConfiguration>() ?? TaskDispatcherConfiguration.Default;
+            var taskDispatcherConfig = config.GetSection(Utils.Constants.TaskDispatcherConfigurationSectionName)?.Get<TaskDispatcherConfiguration>() ?? TaskDispatcherConfiguration.Default;
             var integrationTestHostConfig = config.GetSection("IntegrationTestHost").Get<IntegrationTestHostConfig>();
             
 
@@ -61,6 +62,17 @@ namespace Distask.Tests.Integration.Master
                     new HealthLevelChecker(serviceProvider.GetService<ILogger<HealthLevelChecker>>(), BrokerClientHealthLevel.Excellent))
 
                 .AddSingleton<ITaskDispatcher, TaskDispatcher>();
+        }
+
+        protected override IHostBuilder ConfigureAdditionalFeatures(IHostBuilder hostBuilder)
+        {
+            return hostBuilder.UseSerilog((hostBuilderConfig, loggerConfig) =>
+            {
+                loggerConfig.MinimumLevel.Debug()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                .Enrich.FromLogContext()
+                .WriteTo.Console();
+            });
         }
         #endregion Protected Methods
 
