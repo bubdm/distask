@@ -68,7 +68,7 @@ namespace Distask.Tests.Integration.Master
                         {
                             var result = await taskDispatcher.DispatchAsync("test", new[] { taskId.ToString() }, cancellationToken: taskCancellationTokenSource.Token);
                             // Console.WriteLine(result.Result);
-                            logger.LogInformation("The result is: {0}.", result);
+                            logger.LogInformation("Result: {0}.", result);
                         }
                         catch (NoAvailableClientException) when (startedState == 0) 
                         {
@@ -145,18 +145,18 @@ namespace Distask.Tests.Integration.Master
                     => JsonConvert.SerializeObject(obj, Formatting.Indented);
         private void TaskDispatcher_BrokerClientDisposed(object sender, TaskDispatchers.Client.BrokerClientDisposedEventArgs e)
         {
-
+            logger.LogInformation("Broker Disposed: {0}.", e.Name);
         }
 
         private void TaskDispatcher_BrokerClientRecycled(object sender, TaskDispatchers.Client.BrokerClientRecycledEventArgs e)
         {
-
+            logger.LogInformation("Broker Recycled: {0}.", e.BrokerClient.Name);
         }
 
         private void TaskDispatcher_BrokerClientRegistered(object sender, TaskDispatchers.Client.BrokerClientRegisteredEventArgs e)
         {
             Interlocked.Exchange(ref this.startedState, 1);
-            logger.LogDebug($"Broker has registered: {e.Name}.");
+            logger.LogInformation("Broker Registered: {0}.", e.Name);
         }
 
         #endregion Private Methods

@@ -11,6 +11,7 @@
  * https://github.com/daxnet/distask/blob/master/LICENSE
  ****************************************************************************/
 
+using Distask.Contracts;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -35,6 +36,7 @@ namespace Distask.TaskDispatchers.Client
         private long lastSuccessRequestTimeData;
         private int lifetimeStateData;
         private long totalRequests = 0L;
+        private DistaskResponse lastResponse;
 
         #endregion Private Fields
 
@@ -126,6 +128,19 @@ namespace Distask.TaskDispatchers.Client
             }
         }
 
+        public DistaskResponse LastResponse
+        {
+            get
+            {
+                return lastResponse;
+            }
+            set
+            {
+                // Interlocked.Exchange(ref this.lastResponse, value);
+                this.lastResponse = value;
+            }
+        }
+
         public long TotalExceptions => this.exceptionLogEntries.Count;
 
         public long TotalRequests => this.totalRequests;
@@ -164,10 +179,6 @@ namespace Distask.TaskDispatchers.Client
 
         #region Internal Methods
 
-        internal void IncreaseForwardedRequests() => Interlocked.Increment(ref this.forwardedRequests);
-
-        internal void IncreaseTotalRequests() => Interlocked.Increment(ref this.totalRequests);
-
         internal void ClearExceptionLogEntries()
         {
             while (!this.exceptionLogEntries.IsEmpty)
@@ -176,7 +187,10 @@ namespace Distask.TaskDispatchers.Client
             }
         }
 
-        #endregion Internal Methods
+        internal void IncreaseForwardedRequests() => Interlocked.Increment(ref this.forwardedRequests);
 
+        internal void IncreaseTotalRequests() => Interlocked.Increment(ref this.totalRequests);
+
+        #endregion Internal Methods
     }
 }

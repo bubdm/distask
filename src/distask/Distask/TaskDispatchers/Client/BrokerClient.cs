@@ -126,6 +126,7 @@ namespace Distask.TaskDispatchers.Client
                 {
                     this.State.IncreaseForwardedRequests();
                     var result = await wrappedClient.ExecuteAsync(request, cancellationToken: localCancellationToken);
+                    this.State.LastResponse = result;
                     if (result.Status == Contracts.StatusCode.Success)
                     {
                         this.State.LastSuccessRequestTime = DateTime.UtcNow;

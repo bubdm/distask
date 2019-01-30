@@ -12,6 +12,8 @@ namespace Distask.Tests.Integration.Broker
 {
     internal sealed class TestTask : BrokerTask
     {
+        private static readonly Random rand = new Random(DateTime.Now.Millisecond);
+
         public TestTask(ILogger<TestTask> logger)
             : base(logger)
         { }
@@ -20,15 +22,20 @@ namespace Distask.Tests.Integration.Broker
 
         protected override Task<DistaskResponse> ExecuteInternalAsync(IEnumerable<string> parameters, CancellationToken cancellationToken = default)
         {
-            //var taskIndex = parameters.FirstOrDefault();
-            //if (string.IsNullOrEmpty(taskIndex))
-            //{
-            //    throw new ExecuteException(nameof(parameters));
-            //}
+            var taskIndex = parameters.FirstOrDefault();
+            if (string.IsNullOrEmpty(taskIndex))
+            {
+                throw new ExecuteException(nameof(parameters));
+            }
 
-            //return Task.FromResult(DistaskResponse.Success($"Response to thread {taskIndex}."));
+            var seed = rand.Next(0, 100000) + 1;
+            if (seed >= 900 && seed <= 950)
+            {
+                logger.LogWarning("Unavailable signal has sent.");
+                return Task.FromResult(DistaskResponse.Error("Temporary Unavailable"));
+            }
 
-            throw new ExecuteException(nameof(parameters));
+            return Task.FromResult(DistaskResponse.Success($"Response to thread {taskIndex}."));
         }
     }
 }
